@@ -38,6 +38,10 @@ public sealed class DiNodeManager : CustomNodeManager2
             // Application running as a snap
             uanodesPath = Path.Join(snapLocation, uanodesPath);
         }
+        else if (!Path.IsPathRooted(uanodesPath))
+        {
+            uanodesPath = Path.Combine(AppContext.BaseDirectory, uanodesPath);
+        }
 
         var predefinedNodes = new NodeStateCollection();
         predefinedNodes.LoadFromBinaryResource(context,
