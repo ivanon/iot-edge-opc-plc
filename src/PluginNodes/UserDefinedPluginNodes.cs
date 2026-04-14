@@ -18,6 +18,9 @@ public partial class UserDefinedPluginNodes(TimeService timeService, ILogger log
 {
     private string _nodesFileName;
     private PlcNodeManager _plcNodeManager;
+    private readonly List<(BaseDataVariableState Variable, ConfigNode Config)> _simulatedVariables = new();
+    private readonly List<ITimer> _simulationTimers = new();
+    private readonly Random _random = new();
 
     public void AddOptions(Mono.Options.OptionSet optionSet)
     {
@@ -39,12 +42,64 @@ public partial class UserDefinedPluginNodes(TimeService timeService, ILogger log
 
     public void StartSimulation()
     {
-        // No simulation.
+        if (_plcNodeManager?.PlcSimulationInstance == null)
+        {
+            return;
+        }
+
+        int periodMs = _plcNodeManager.PlcSimulationInstance.SimulationCycleLength;
+
+        foreach (var (variable, config) in _simulatedVariables)
+        {
+            var timer = _timeService.NewTimer((s, e) =>
+            {
+                UpdateSimulatedValue(variable, config);
+            }, (uint)periodMs);
+
+            _simulationTimers.Add(timer);
+        }
     }
 
     public void StopSimulation()
     {
-        // No simulation.
+        foreach (var timer in _simulationTimers)
+        {
+            timer.Enabled = false;
+        }
+
+        _simulationTimers.Clear();
+    }
+
+    private void UpdateSimulatedValue(BaseDataVariableState variable, ConfigNode config)
+    {
+        if (config.Simulation?.Type != "Random")
+        {
+            return;
+        }
+
+        double min = config.Simulation.Min;
+        double max = config.Simulation.Max;
+        double randomValue = min + _random.NextDouble() * (max - min);
+
+        object value = config.DataType switch
+        {
+            "Boolean" => _random.NextDouble() >= 0.5,
+            "Float" => (float)randomValue,
+            "Double" => randomValue,
+            "UInt32" => (uint)Math.Clamp(randomValue, uint.MinValue, uint.MaxValue),
+            "Int32" => (int)Math.Clamp(randomValue, int.MinValue, int.MaxValue),
+            "UInt16" => (ushort)Math.Clamp(randomValue, ushort.MinValue, ushort.MaxValue),
+            "Int16" => (short)Math.Clamp(randomValue, short.MinValue, short.MaxValue),
+            "Byte" => (byte)Math.Clamp(randomValue, byte.MinValue, byte.MaxValue),
+            "SByte" => (sbyte)Math.Clamp(randomValue, sbyte.MinValue, sbyte.MaxValue),
+            "UInt64" => (ulong)Math.Clamp(randomValue, 0, long.MaxValue),
+            "Int64" => (long)Math.Clamp(randomValue, long.MinValue, long.MaxValue),
+            _ => randomValue,
+        };
+
+        variable.Value = value;
+        variable.Timestamp = _timeService.Now();
+        variable.ClearChangeMasks(_plcNodeManager.SystemContext, false);
     }
 
     private void AddNodes(FolderState folder)
@@ -120,7 +175,12 @@ public partial class UserDefinedPluginNodes(TimeService timeService, ILogger log
 
             LogCreateNode(typedNodeId, node.Name, (string)node.NodeId.GetType().Name, _plcNodeManager.NamespaceIndexes[(int)NamespaceType.OpcPlcApplications]);
 
-            CreateBaseVariable(userNodesFolder, node);
+            var variable = CreateBaseVariable(userNodesFolder, node);
+
+            if (node.Simulation != null && !string.IsNullOrEmpty(node.Simulation.Type))
+            {
+                _simulatedVariables.Add((variable, node));
+            }
 
             var nodeId = isString
                 ? new NodeId(node.NodeId, _plcNodeManager.NamespaceIndexes[(int)NamespaceType.OpcPlcApplications])
@@ -154,7 +214,7 @@ public partial class UserDefinedPluginNodes(TimeService timeService, ILogger log
     /// <summary>
     /// Creates a new variable.
     /// </summary>
-    public void CreateBaseVariable(NodeState parent, ConfigNode node)
+    public BaseDataVariableState CreateBaseVariable(NodeState parent, ConfigNode node)
     {
         if (!Enum.TryParse(node.DataType, out BuiltInType nodeDataType))
         {
@@ -171,11 +231,11 @@ public partial class UserDefinedPluginNodes(TimeService timeService, ILogger log
         catch
         {
             LogUnsupportedAccessLevel(node.AccessLevel, node.Name);
-            node.AccessLevel = "CurrentRead";
+            node.AccessLevel = "CurrentReadOrWrite";
             accessLevel = AccessLevels.CurrentReadOrWrite;
         }
 
-        _plcNodeManager.CreateBaseVariable(parent, node.NodeId, node.Name, new NodeId((uint)nodeDataType), node.ValueRank, accessLevel, node.Description, NamespaceType.OpcPlcApplications, node?.Value);
+        return _plcNodeManager.CreateBaseVariable(parent, node.NodeId, node.Name, new NodeId((uint)nodeDataType), node.ValueRank, accessLevel, node.Description, NamespaceType.OpcPlcApplications, node?.Value);
     }
 
     private static object UpdateArrayValue(ConfigNode node, JArray jArrayValue)

@@ -21,7 +21,12 @@
     {
       "NodeId": 1023,
       "Name": "ActualSpeed",
-      "Description": "Rotational speed"
+      "Description": "Rotational speed",
+      "Simulation": {
+        "Type": "Random",
+        "Min": 0,
+        "Max": 100
+      }
     },
     {
       "NodeId": "aRMS"
