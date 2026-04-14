@@ -118,10 +118,14 @@ public partial class OpcPlcServer
             LogLogLevel(Config.LogLevelCli);
 
             // Show OPC PLC version.
+            string executingAssemblyLocation = Assembly.GetExecutingAssembly().Location;
+            DateTime lastWriteTimeUtc = string.IsNullOrEmpty(executingAssemblyLocation)
+                ? DateTime.UtcNow
+                : File.GetLastWriteTimeUtc(executingAssemblyLocation);
             LogStartingUp(
                 Config.ProgramName,
                 version,
-                File.GetLastWriteTimeUtc(Assembly.GetExecutingAssembly().Location));
+                lastWriteTimeUtc);
             LogInformationalVersion(
                 Config.ProgramName,
                 (Attribute.GetCustomAttribute(Assembly.GetEntryAssembly(), typeof(AssemblyInformationalVersionAttribute)) as AssemblyInformationalVersionAttribute)?.InformationalVersion);

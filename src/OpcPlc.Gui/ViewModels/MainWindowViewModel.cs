@@ -50,10 +50,12 @@ public partial class MainWindowViewModel : ViewModelBase
         var canStart = this.WhenAnyValue(x => x.IsBusy, x => x.ServerStatus,
             (isBusy, status) => !isBusy && status != ServerState.Running);
         StartServerCommand = ReactiveCommand.CreateFromTask(StartServerAsync, canStart);
+        StartServerCommand.ThrownExceptions.Subscribe(ex => OnLogMessage($"[Error] Start server failed: {ex.Message}"));
 
         var canStop = this.WhenAnyValue(x => x.IsBusy, x => x.ServerStatus,
             (isBusy, status) => !isBusy && status == ServerState.Running);
         StopServerCommand = ReactiveCommand.CreateFromTask(StopServerAsync, canStop);
+        StopServerCommand.ThrownExceptions.Subscribe(ex => OnLogMessage($"[Error] Stop server failed: {ex.Message}"));
     }
 
     private async Task StartServerAsync()
