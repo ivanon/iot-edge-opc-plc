@@ -1,10 +1,10 @@
+using Avalonia.Threading;
 using Microsoft.Extensions.Logging;
 using OpcPlc.Gui.Logging;
 using ReactiveUI;
 using System;
 using System.Collections.ObjectModel;
 using System.Reactive;
-using System.Reactive.Concurrency;
 using System.Threading.Tasks;
 
 namespace OpcPlc.Gui.ViewModels;
@@ -61,7 +61,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task StartServerAsync()
     {
-        RxApp.MainThreadScheduler.Schedule(() => IsBusy = true);
+        await Dispatcher.UIThread.InvokeAsync(() => IsBusy = true);
 
         try
         {
@@ -80,7 +80,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 }
                 catch
                 {
-                    RxApp.MainThreadScheduler.Schedule(() =>
+                    await Dispatcher.UIThread.InvokeAsync(() =>
                     {
                         ServerStatus = ServerState.Error;
                         IsBusy = false;
@@ -89,8 +89,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 }
             });
 
-            // Immediately reflect that the server launch was initiated.
-            RxApp.MainThreadScheduler.Schedule(() =>
+            await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 ServerStatus = ServerState.Running;
                 IsBusy = false;
@@ -98,7 +97,7 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         catch
         {
-            RxApp.MainThreadScheduler.Schedule(() =>
+            await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 ServerStatus = ServerState.Error;
                 IsBusy = false;
@@ -114,26 +113,25 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void OnLogMessage(string message)
     {
-        RxApp.MainThreadScheduler.Schedule(System.Reactive.Unit.Default, (_, __) =>
+        Dispatcher.UIThread.InvokeAsync(() =>
         {
             LogLines.Add(message);
             while (LogLines.Count > MaxLogLines)
             {
                 LogLines.RemoveAt(0);
             }
-            return System.Reactive.Disposables.Disposable.Empty;
         });
     }
 
     private async Task StopServerAsync()
     {
-        RxApp.MainThreadScheduler.Schedule(() => IsBusy = true);
+        await Dispatcher.UIThread.InvokeAsync(() => IsBusy = true);
 
         try
         {
             await Task.Run(() => _opcPlcServer?.Stop()).ConfigureAwait(false);
 
-            RxApp.MainThreadScheduler.Schedule(() =>
+            await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 ServerStatus = ServerState.Stopped;
                 IsBusy = false;
@@ -141,7 +139,7 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         catch
         {
-            RxApp.MainThreadScheduler.Schedule(() =>
+            await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 ServerStatus = ServerState.Error;
                 IsBusy = false;
