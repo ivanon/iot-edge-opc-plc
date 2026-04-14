@@ -1,7 +1,9 @@
 using ReactiveUI;
 using System;
+using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace OpcPlc.Gui.ViewModels;
@@ -19,7 +21,28 @@ public partial class MainWindowViewModel : ViewModelBase
     public ServerState ServerStatus
     {
         get => _serverStatus;
-        set => this.RaiseAndSetIfChanged(ref _serverStatus, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _serverStatus, value);
+            this.RaisePropertyChanged(nameof(ServerStatusText));
+        }
+    }
+
+    public string ServerStatusText => ServerStatus.ToString();
+
+    public ObservableCollection<string> LogLines { get; } = new ObservableCollection<string>();
+
+    public string LogText
+    {
+        get
+        {
+            var sb = new StringBuilder();
+            foreach (var line in LogLines)
+            {
+                sb.AppendLine(line);
+            }
+            return sb.ToString();
+        }
     }
 
     private bool _isBusy;
