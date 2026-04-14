@@ -76,7 +76,7 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 try
                 {
-                    await _opcPlcServer.StartAsync(["--autoaccept"]).ConfigureAwait(false);
+                    await _opcPlcServer.StartAsync(["--autoaccept", "--ut", "--dca"]).ConfigureAwait(false);
                 }
                 catch
                 {
