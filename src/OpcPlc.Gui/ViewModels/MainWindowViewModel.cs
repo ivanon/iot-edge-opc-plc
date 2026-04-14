@@ -32,19 +32,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public ObservableCollection<string> LogLines { get; } = new ObservableCollection<string>();
 
-    public string LogText
-    {
-        get
-        {
-            var sb = new StringBuilder();
-            foreach (var line in LogLines)
-            {
-                sb.AppendLine(line);
-            }
-            return sb.ToString();
-        }
-    }
-
     private bool _isBusy;
     public bool IsBusy
     {

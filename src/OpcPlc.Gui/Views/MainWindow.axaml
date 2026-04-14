@@ -21,14 +21,10 @@
             <TextBlock Text="{Binding ServerStatusText}" VerticalAlignment="Center" />
         </StackPanel>
 
-        <TextBox Margin="8"
-                 IsReadOnly="True"
-                 AcceptsReturn="True"
-                 TextWrapping="NoWrap"
-                 FontFamily="{x:Static FontFamily.Default}, monospace"
+        <ListBox Margin="8"
+                 ItemsSource="{Binding LogLines}"
                  ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                 ScrollViewer.VerticalScrollBarVisibility="Auto"
-                 Text="{Binding LogText}" />
+                 ScrollViewer.VerticalScrollBarVisibility="Auto" />
     </DockPanel>
 
 </Window>
