@@ -69,7 +69,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 _opcPlcServer.LoggerFactoryConfigured += OnLoggerFactoryConfigured;
             }
 
-            await Task.Run(async () => await _opcPlcServer.StartAsync(Array.Empty<string>()).ConfigureAwait(false)).ConfigureAwait(false);
+            await Task.Run(async () => await _opcPlcServer.StartAsync(Array.Empty<string>()).ConfigureAwait(false)).ConfigureAwait(true);
 
             ServerStatus = ServerState.Running;
         }
@@ -110,7 +110,7 @@ public partial class MainWindowViewModel : ViewModelBase
             await Task.Run(() =>
             {
                 _opcPlcServer?.Stop();
-            }).ConfigureAwait(false);
+            }).ConfigureAwait(true);
 
             ServerStatus = ServerState.Stopped;
         }

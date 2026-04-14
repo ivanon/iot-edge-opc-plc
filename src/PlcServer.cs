@@ -608,9 +608,34 @@ public partial class PlcServer : StandardServer
     /// </remarks>
     protected override ServerProperties LoadServerProperties()
     {
-        var fileVersion = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location);
+        string executingAssemblyLocation = Assembly.GetExecutingAssembly().Location;
 
-        string opcPlcBuildNumber = fileVersion.ProductVersion[(fileVersion.ProductVersion.IndexOf('+') + 1)..];
+        int productMajorPart = 0, productMinorPart = 0, productBuildPart = 0;
+        string productVersion = "0";
+        DateTime buildDate = DateTime.UtcNow;
+
+        if (!string.IsNullOrEmpty(executingAssemblyLocation))
+        {
+            var fileVersion = FileVersionInfo.GetVersionInfo(executingAssemblyLocation);
+            productMajorPart = fileVersion.ProductMajorPart;
+            productMinorPart = fileVersion.ProductMinorPart;
+            productBuildPart = fileVersion.ProductBuildPart;
+            productVersion = fileVersion.ProductVersion ?? "0";
+            buildDate = File.GetLastWriteTimeUtc(executingAssemblyLocation);
+        }
+        else
+        {
+            var version = Assembly.GetExecutingAssembly().GetName().Version;
+            if (version != null)
+            {
+                productMajorPart = version.Major;
+                productMinorPart = version.Minor;
+                productBuildPart = version.Build;
+                productVersion = version.ToString();
+            }
+        }
+
+        string opcPlcBuildNumber = productVersion[(productVersion.IndexOf('+') + 1)..];
         string opcUaSdkVersion = Utils.GetAssemblySoftwareVersion();
         string opcUaSdkBuildNumber = opcUaSdkVersion[(opcUaSdkVersion.IndexOf('+') + 1)..];
 
@@ -618,9 +643,9 @@ public partial class PlcServer : StandardServer
             ManufacturerName = "Microsoft",
             ProductName = "IoT Edge OPC UA PLC",
             ProductUri = "https://github.com/Azure-Samples/iot-edge-opc-plc",
-            SoftwareVersion = $"{fileVersion.ProductMajorPart}.{fileVersion.ProductMinorPart}.{fileVersion.ProductBuildPart} (OPC UA SDK {Utils.GetAssemblyBuildNumber()})",
+            SoftwareVersion = $"{productMajorPart}.{productMinorPart}.{productBuildPart} (OPC UA SDK {Utils.GetAssemblyBuildNumber()})",
             BuildNumber = $"{opcPlcBuildNumber} (OPC UA SDK {opcUaSdkBuildNumber} from {Utils.GetAssemblyTimestamp():yyyy-MM-ddTHH:mm:ssZ})",
-            BuildDate = File.GetLastWriteTimeUtc(Assembly.GetExecutingAssembly().Location),
+            BuildDate = buildDate,
         };
 
         return properties;
