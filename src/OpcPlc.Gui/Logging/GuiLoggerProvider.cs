@@ -19,6 +19,7 @@ public sealed class GuiLoggerProvider : ILoggerProvider
 
     public void Dispose()
     {
+        // No-op: this provider is stateless and holds no unmanaged resources.
     }
 
     private sealed class GuiLogger : ILogger

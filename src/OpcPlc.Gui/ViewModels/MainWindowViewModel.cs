@@ -1,4 +1,3 @@
-using Avalonia.Threading;
 using Microsoft.Extensions.Logging;
 using OpcPlc.Gui.Logging;
 using ReactiveUI;
