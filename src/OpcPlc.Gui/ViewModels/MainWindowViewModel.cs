@@ -62,8 +62,11 @@ public partial class MainWindowViewModel : ViewModelBase
         IsBusy = true;
         try
         {
-            _opcPlcServer ??= new OpcPlc.OpcPlcServer();
-            _opcPlcServer.LoggerFactoryConfigured += OnLoggerFactoryConfigured;
+            if (_opcPlcServer == null)
+            {
+                _opcPlcServer = new OpcPlc.OpcPlcServer();
+                _opcPlcServer.LoggerFactoryConfigured += OnLoggerFactoryConfigured;
+            }
 
             await Task.Run(async () => await _opcPlcServer.StartAsync(Array.Empty<string>()).ConfigureAwait(false)).ConfigureAwait(false);
 
@@ -87,13 +90,14 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void OnLogMessage(string message)
     {
-        Dispatcher.UIThread.InvokeAsync(() =>
+        RxApp.MainThreadScheduler.Schedule(System.Reactive.Unit.Default, (_, __) =>
         {
             LogLines.Add(message);
             while (LogLines.Count > MaxLogLines)
             {
                 LogLines.RemoveAt(0);
             }
+            return System.Reactive.Disposables.Disposable.Empty;
         });
     }
 
