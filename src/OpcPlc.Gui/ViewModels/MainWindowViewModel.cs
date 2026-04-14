@@ -8,10 +8,15 @@ namespace OpcPlc.Gui.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
-    public string Greeting { get; } = "Welcome to Avalonia!";
+    public enum ServerState
+    {
+        Stopped,
+        Running,
+        Error
+    }
 
-    private string _serverStatus = "Stopped";
-    public string ServerStatus
+    private ServerState _serverStatus = ServerState.Stopped;
+    public ServerState ServerStatus
     {
         get => _serverStatus;
         set => this.RaiseAndSetIfChanged(ref _serverStatus, value);
@@ -32,11 +37,11 @@ public partial class MainWindowViewModel : ViewModelBase
     public MainWindowViewModel()
     {
         var canStart = this.WhenAnyValue(x => x.IsBusy, x => x.ServerStatus,
-            (isBusy, status) => !isBusy && status != "Running");
+            (isBusy, status) => !isBusy && status != ServerState.Running);
         StartServerCommand = ReactiveCommand.CreateFromTask(StartServerAsync, canStart);
 
         var canStop = this.WhenAnyValue(x => x.IsBusy, x => x.ServerStatus,
-            (isBusy, status) => !isBusy && status == "Running");
+            (isBusy, status) => !isBusy && status == ServerState.Running);
         StopServerCommand = ReactiveCommand.CreateFromTask(StopServerAsync, canStop);
     }
 
@@ -47,12 +52,14 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             _opcPlcServer ??= new OpcPlc.OpcPlcServer();
 
-            await Task.Run(async () =>
-            {
-                await _opcPlcServer.StartAsync(Array.Empty<string>()).ConfigureAwait(false);
-            }).ConfigureAwait(false);
+            await Task.Run(() => _opcPlcServer.StartAsync(Array.Empty<string>())).ConfigureAwait(false);
 
-            ServerStatus = "Running";
+            ServerStatus = ServerState.Running;
+        }
+        catch
+        {
+            ServerStatus = ServerState.Error;
+            throw;
         }
         finally
         {
@@ -70,7 +77,12 @@ public partial class MainWindowViewModel : ViewModelBase
                 _opcPlcServer?.Stop();
             }).ConfigureAwait(false);
 
-            ServerStatus = "Stopped";
+            ServerStatus = ServerState.Stopped;
+        }
+        catch
+        {
+            ServerStatus = ServerState.Error;
+            throw;
         }
         finally
         {
