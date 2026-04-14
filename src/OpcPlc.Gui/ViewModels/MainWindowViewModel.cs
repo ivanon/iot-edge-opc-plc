@@ -47,10 +47,10 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             _opcPlcServer ??= new OpcPlc.OpcPlcServer();
 
-            _ = Task.Run(async () =>
+            await Task.Run(async () =>
             {
                 await _opcPlcServer.StartAsync(Array.Empty<string>()).ConfigureAwait(false);
-            });
+            }).ConfigureAwait(false);
 
             ServerStatus = "Running";
         }
