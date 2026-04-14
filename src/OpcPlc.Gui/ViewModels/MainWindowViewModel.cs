@@ -4,6 +4,7 @@ using ReactiveUI;
 using System;
 using System.Collections.ObjectModel;
 using System.Reactive;
+using System.Reactive.Concurrency;
 using System.Threading.Tasks;
 
 namespace OpcPlc.Gui.ViewModels;
@@ -60,7 +61,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task StartServerAsync()
     {
-        IsBusy = true;
+        RxApp.MainThreadScheduler.Schedule(() => IsBusy = true);
+
         try
         {
             if (_opcPlcServer == null)
@@ -69,18 +71,39 @@ public partial class MainWindowViewModel : ViewModelBase
                 _opcPlcServer.LoggerFactoryConfigured += OnLoggerFactoryConfigured;
             }
 
-            await Task.Run(async () => await _opcPlcServer.StartAsync(Array.Empty<string>()).ConfigureAwait(false)).ConfigureAwait(true);
+            // StartAsync blocks until the server is stopped, so we must fire-and-forget.
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await _opcPlcServer.StartAsync(["--autoaccept"]).ConfigureAwait(false);
+                }
+                catch
+                {
+                    RxApp.MainThreadScheduler.Schedule(() =>
+                    {
+                        ServerStatus = ServerState.Error;
+                        IsBusy = false;
+                    });
+                    throw;
+                }
+            });
 
-            ServerStatus = ServerState.Running;
+            // Immediately reflect that the server launch was initiated.
+            RxApp.MainThreadScheduler.Schedule(() =>
+            {
+                ServerStatus = ServerState.Running;
+                IsBusy = false;
+            });
         }
         catch
         {
-            ServerStatus = ServerState.Error;
+            RxApp.MainThreadScheduler.Schedule(() =>
+            {
+                ServerStatus = ServerState.Error;
+                IsBusy = false;
+            });
             throw;
-        }
-        finally
-        {
-            IsBusy = false;
         }
     }
 
@@ -104,24 +127,26 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task StopServerAsync()
     {
-        IsBusy = true;
+        RxApp.MainThreadScheduler.Schedule(() => IsBusy = true);
+
         try
         {
-            await Task.Run(() =>
-            {
-                _opcPlcServer?.Stop();
-            }).ConfigureAwait(true);
+            await Task.Run(() => _opcPlcServer?.Stop()).ConfigureAwait(false);
 
-            ServerStatus = ServerState.Stopped;
+            RxApp.MainThreadScheduler.Schedule(() =>
+            {
+                ServerStatus = ServerState.Stopped;
+                IsBusy = false;
+            });
         }
         catch
         {
-            ServerStatus = ServerState.Error;
+            RxApp.MainThreadScheduler.Schedule(() =>
+            {
+                ServerStatus = ServerState.Error;
+                IsBusy = false;
+            });
             throw;
-        }
-        finally
-        {
-            IsBusy = false;
         }
     }
 }
