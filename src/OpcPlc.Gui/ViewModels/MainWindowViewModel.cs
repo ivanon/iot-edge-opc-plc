@@ -1,3 +1,6 @@
+using Avalonia.Threading;
+using Microsoft.Extensions.Logging;
+using OpcPlc.Gui.Logging;
 using ReactiveUI;
 using System;
 using System.Collections.ObjectModel;
@@ -8,6 +11,7 @@ namespace OpcPlc.Gui.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
+    private const int MaxLogLines = 500;
     public enum ServerState
     {
         Stopped,
@@ -59,6 +63,7 @@ public partial class MainWindowViewModel : ViewModelBase
         try
         {
             _opcPlcServer ??= new OpcPlc.OpcPlcServer();
+            _opcPlcServer.LoggerFactoryConfigured += OnLoggerFactoryConfigured;
 
             await Task.Run(async () => await _opcPlcServer.StartAsync(Array.Empty<string>()).ConfigureAwait(false)).ConfigureAwait(false);
 
@@ -73,6 +78,23 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             IsBusy = false;
         }
+    }
+
+    private void OnLoggerFactoryConfigured(ILoggerFactory loggerFactory)
+    {
+        loggerFactory.AddProvider(new GuiLoggerProvider(OnLogMessage));
+    }
+
+    private void OnLogMessage(string message)
+    {
+        Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            LogLines.Add(message);
+            while (LogLines.Count > MaxLogLines)
+            {
+                LogLines.RemoveAt(0);
+            }
+        });
     }
 
     private async Task StopServerAsync()

@@ -37,6 +37,11 @@ public partial class OpcPlcServer
     /// </summary>
     public ILoggerFactory LoggerFactory { get; set; }
 
+    /// <summary>
+    /// Raised when the logger factory has been configured during startup.
+    /// </summary>
+    public event Action<ILoggerFactory> LoggerFactoryConfigured;
+
     private ILogger _logger;
 
     /// <summary>
@@ -382,6 +387,7 @@ public partial class OpcPlcServer
 
         _telemetryContext = new OpcTelemetryContext(LoggerFactory, name, version);
         Logger = _telemetryContext.LoggerFactory.CreateLogger(name);
+        LoggerFactoryConfigured?.Invoke(LoggerFactory);
     }
 
     /// <summary>
