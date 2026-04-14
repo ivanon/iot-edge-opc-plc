@@ -129,6 +129,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="OpcPlc.Gui" />
+    <Compile Remove="OpcPlc.Gui\**" />
   </ItemGroup>
 
 </Project>

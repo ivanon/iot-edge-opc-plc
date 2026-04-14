@@ -1,18 +1,24 @@
-﻿using Avalonia;
+using Avalonia;
 using System;
+using System.Linq;
 
 namespace OpcPlc.Gui;
 
-sealed class Program
+class Program
 {
-    // Initialization code. Don't use any Avalonia, third-party APIs or any
-    // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
-    // yet and stuff might break.
-    [STAThread]
-    public static void Main(string[] args) => BuildAvaloniaApp()
-        .StartWithClassicDesktopLifetime(args);
+    [System.STAThread]
+    public static void Main(string[] args)
+    {
+        if (args.Contains("--cli"))
+        {
+            OpcPlc.Program.Main(args);
+            return;
+        }
 
-    // Avalonia configuration, don't remove; also used by visual designer.
+        BuildAvaloniaApp()
+            .StartWithClassicDesktopLifetime(args);
+    }
+
     public static AppBuilder BuildAvaloniaApp()
         => AppBuilder.Configure<App>()
             .UsePlatformDetect()
