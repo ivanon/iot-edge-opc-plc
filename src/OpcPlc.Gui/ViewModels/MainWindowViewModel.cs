@@ -1,6 +1,8 @@
 using Avalonia.Threading;
 using Microsoft.Extensions.Logging;
 using OpcPlc.Gui.Logging;
+using OpcPlc.Gui.Services;
+using OpcPlc.Gui.ViewModels.NodeEditor;
 using ReactiveUI;
 using System;
 using System.Collections.ObjectModel;
@@ -34,6 +36,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public ObservableCollection<string> LogLines { get; } = new ObservableCollection<string>();
 
+    public NodeEditorViewModel NodeEditor { get; } = new NodeEditorViewModel();
+
     private bool _isBusy;
     public bool IsBusy
     {
@@ -43,8 +47,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public ReactiveCommand<Unit, Unit> StartServerCommand { get; }
     public ReactiveCommand<Unit, Unit> StopServerCommand { get; }
+    public ReactiveCommand<Unit, Unit> SaveNodesCommand { get; }
 
     private OpcPlc.OpcPlcServer? _opcPlcServer;
+    private readonly NodesFileService _nodesFileService;
 
     public MainWindowViewModel()
     {
@@ -57,6 +63,16 @@ public partial class MainWindowViewModel : ViewModelBase
             (isBusy, status) => !isBusy && status == ServerState.Running);
         StopServerCommand = ReactiveCommand.CreateFromTask(StopServerAsync, canStop);
         StopServerCommand.ThrownExceptions.Subscribe(ex => OnLogMessage($"[Error] Stop server failed: {ex.Message}"));
+
+        // Initialize node editor from nodesfile.json if available.
+        _nodesFileService = new NodesFileService();
+        var loadedRoot = _nodesFileService.Load();
+        NodeEditor.Root = loadedRoot ?? new FolderItem { Name = "MyTelemetry" };
+
+        SaveNodesCommand = ReactiveCommand.Create(() => _nodesFileService.Save(NodeEditor.Root));
+
+        this.WhenAnyValue(x => x.ServerStatus)
+            .Subscribe(status => NodeEditor.IsReadOnly = status == ServerState.Running);
     }
 
     private async Task StartServerAsync()
@@ -76,7 +92,7 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 try
                 {
-                    await _opcPlcServer.StartAsync(["--autoaccept", "--ut", "--dca", "--ph", "127.0.0.1"]).ConfigureAwait(false);
+                    await _opcPlcServer.StartAsync(["--autoaccept", "--ut", "--dca", "--ph", "127.0.0.1", "--nf", _nodesFileService.ResolvedPath]).ConfigureAwait(false);
                 }
                 catch
                 {

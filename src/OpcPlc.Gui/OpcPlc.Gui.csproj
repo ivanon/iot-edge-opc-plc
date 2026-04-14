@@ -23,4 +23,12 @@
   <ItemGroup>
     <ProjectReference Include="..\opc-plc.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="..\nodesfile.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="OpcPlc.Gui.Tests" />
+  </ItemGroup>
 </Project>

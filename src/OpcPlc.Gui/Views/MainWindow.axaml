@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:OpcPlc.Gui.ViewModels"
+        xmlns:ne="using:OpcPlc.Gui.ViewModels.NodeEditor"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
@@ -21,10 +22,81 @@
             <TextBlock Text="{Binding ServerStatusText}" VerticalAlignment="Center" />
         </StackPanel>
 
-        <ListBox Margin="8,0,8,8"
+        <ListBox DockPanel.Dock="Bottom" Margin="8,0,8,8" Height="200"
                  ItemsSource="{Binding LogLines}"
                  ScrollViewer.HorizontalScrollBarVisibility="Auto"
                  ScrollViewer.VerticalScrollBarVisibility="Auto" />
+
+        <Grid Margin="8,0,8,8" ColumnDefinitions="300,*">
+            <DockPanel Grid.Column="0">
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="4" Margin="0,0,0,4">
+                    <Button Content="+ Folder" Command="{Binding NodeEditor.AddFolderCommand}" IsEnabled="{Binding !NodeEditor.IsReadOnly}" />
+                    <Button Content="+ Node" Command="{Binding NodeEditor.AddNodeCommand}" IsEnabled="{Binding !NodeEditor.IsReadOnly}" />
+                    <Button Content="Delete" Command="{Binding NodeEditor.DeleteCommand}" IsEnabled="{Binding !NodeEditor.IsReadOnly}" />
+                    <Button Content="Save" Command="{Binding SaveNodesCommand}" IsEnabled="{Binding !NodeEditor.IsReadOnly}" />
+                </StackPanel>
+                <TreeView ItemsSource="{Binding NodeEditor.Root.Children}"
+                          SelectedItem="{Binding NodeEditor.SelectedItem}">
+                <TreeView.DataTemplates>
+                    <TreeDataTemplate DataType="ne:FolderItem"
+                                       ItemsSource="{Binding Children}">
+                        <TextBlock Text="{Binding Name}" />
+                    </TreeDataTemplate>
+                    <DataTemplate DataType="ne:NodeItem">
+                        <TextBlock Text="{Binding Name}" />
+                    </DataTemplate>
+                </TreeView.DataTemplates>
+            </TreeView>
+            </DockPanel>
+
+            <Border Grid.Column="1" Margin="8,0,0,0" BorderBrush="Gray" BorderThickness="1" IsEnabled="{Binding !NodeEditor.IsReadOnly}">
+                <ScrollViewer>
+                    <ContentControl Content="{Binding NodeEditor.SelectedItem}" Margin="12">
+                        <ContentControl.DataTemplates>
+                            <DataTemplate DataType="ne:FolderItem">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="Folder" FontWeight="Bold" />
+                                    <TextBlock Text="Name" />
+                                    <TextBox Text="{Binding Name}" />
+                                </StackPanel>
+                            </DataTemplate>
+                            <DataTemplate DataType="ne:NodeItem">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="Node" FontWeight="Bold" />
+                                    <TextBlock Text="NodeId" />
+                                    <TextBox Text="{Binding NodeId}" />
+                                    <TextBlock Text="Name" />
+                                    <TextBox Text="{Binding Name}" />
+                                    <TextBlock Text="DataType" />
+                                    <TextBox Text="{Binding DataType}" />
+                                    <TextBlock Text="ValueRank" />
+                                    <NumericUpDown Value="{Binding ValueRank}" />
+                                    <TextBlock Text="AccessLevel" />
+                                    <TextBox Text="{Binding AccessLevel}" />
+                                    <TextBlock Text="Description" />
+                                    <TextBox Text="{Binding Description}" />
+                                    <TextBlock Text="Value" />
+                                    <TextBox Text="{Binding Value}" />
+
+                                    <Border BorderBrush="LightGray" BorderThickness="0,1,0,0" Margin="0,8,0,0" Padding="0,8,0,0">
+                                        <StackPanel Spacing="8">
+                                            <TextBlock Text="Simulation" FontWeight="Bold" />
+                                            <CheckBox Content="Enable Random Simulation" IsChecked="{Binding SimulationEnabled}" />
+                                            <StackPanel IsEnabled="{Binding SimulationEnabled}" Spacing="8">
+                                                <TextBlock Text="Min" />
+                                                <NumericUpDown Value="{Binding Simulation.Min}" />
+                                                <TextBlock Text="Max" />
+                                                <NumericUpDown Value="{Binding Simulation.Max}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ContentControl.DataTemplates>
+                    </ContentControl>
+                </ScrollViewer>
+            </Border>
+        </Grid>
     </DockPanel>
 
 </Window>
