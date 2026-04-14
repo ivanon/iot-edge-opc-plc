@@ -21,7 +21,7 @@
             <TextBlock Text="{Binding ServerStatusText}" VerticalAlignment="Center" />
         </StackPanel>
 
-        <ListBox Margin="8"
+        <ListBox Margin="8,0,8,8"
                  ItemsSource="{Binding LogLines}"
                  ScrollViewer.HorizontalScrollBarVisibility="Auto"
                  ScrollViewer.VerticalScrollBarVisibility="Auto" />

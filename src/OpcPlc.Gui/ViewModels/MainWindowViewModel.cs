@@ -2,8 +2,6 @@ using ReactiveUI;
 using System;
 using System.Collections.ObjectModel;
 using System.Reactive;
-using System.Reactive.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace OpcPlc.Gui.ViewModels;
@@ -62,7 +60,7 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             _opcPlcServer ??= new OpcPlc.OpcPlcServer();
 
-            await Task.Run(() => _opcPlcServer.StartAsync(Array.Empty<string>())).ConfigureAwait(false);
+            await Task.Run(async () => await _opcPlcServer.StartAsync(Array.Empty<string>()).ConfigureAwait(false)).ConfigureAwait(false);
 
             ServerStatus = ServerState.Running;
         }
