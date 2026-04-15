@@ -39,3 +39,4 @@
 CodeCoverage
 coverage.cobertura.xml
 .worktrees/
+publish/
