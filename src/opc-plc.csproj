@@ -95,9 +95,6 @@
     <None Update="CompanionSpecs\DI\Opc.Ua.DI.PredefinedNodes.uanodes">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="nodesfile.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Update="SimpleEvent\SimpleEvents.PredefinedNodes.uanodes">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

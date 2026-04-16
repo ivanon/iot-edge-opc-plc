@@ -21,6 +21,7 @@ public partial class UserDefinedPluginNodes(TimeService timeService, ILogger log
     private readonly List<(BaseDataVariableState Variable, ConfigNode Config)> _simulatedVariables = new();
     private readonly List<ITimer> _simulationTimers = new();
     private readonly Random _random = new();
+    private readonly Dictionary<NodeId, BaseDataVariableState> _variablesByNodeId = new();
 
     public void AddOptions(Mono.Options.OptionSet optionSet)
     {
@@ -125,12 +126,13 @@ public partial class UserDefinedPluginNodes(TimeService timeService, ILogger log
         LogCompletedProcessingUserDefinedNodeFile();
     }
 
-    private IEnumerable<NodeWithIntervals> AddNodes(FolderState folder, ConfigFolder cfgFolder)
+    private IEnumerable<NodeWithIntervals> AddNodes(FolderState folder, ConfigFolder cfgFolder, string pathPrefix = "")
     {
-        LogCreateFolder(cfgFolder.Folder);
+        string folderPath = string.IsNullOrEmpty(pathPrefix) ? cfgFolder.Folder : $"{pathPrefix}.{cfgFolder.Folder}";
+        LogCreateFolder(folderPath);
         FolderState userNodesFolder = _plcNodeManager.CreateFolder(
             folder,
-            path: cfgFolder.Folder,
+            path: folderPath,
             name: cfgFolder.Folder,
             NamespaceType.OpcPlcApplications);
 
@@ -175,27 +177,36 @@ public partial class UserDefinedPluginNodes(TimeService timeService, ILogger log
 
             LogCreateNode(typedNodeId, node.Name, (string)node.NodeId.GetType().Name, _plcNodeManager.NamespaceIndexes[(int)NamespaceType.OpcPlcApplications]);
 
-            var variable = CreateBaseVariable(userNodesFolder, node);
-
-            if (node.Simulation != null && !string.IsNullOrEmpty(node.Simulation.Type))
-            {
-                _simulatedVariables.Add((variable, node));
-            }
-
             var nodeId = isString
                 ? new NodeId(node.NodeId, _plcNodeManager.NamespaceIndexes[(int)NamespaceType.OpcPlcApplications])
                 : (NodeId)node.NodeId;
 
+            if (node.Method != null)
+            {
+                CreateMethod(userNodesFolder, node, nodeId);
+            }
+            else
+            {
+                var variable = CreateBaseVariable(userNodesFolder, node);
+
+                if (node.Simulation != null && !string.IsNullOrEmpty(node.Simulation.Type))
+                {
+                    _simulatedVariables.Add((variable, node));
+                }
+
+                _variablesByNodeId[nodeId] = variable;
+            }
+
             yield return PluginNodesHelper.GetNodeWithIntervals(nodeId, _plcNodeManager);
         }
 
-        foreach (var childNode in AddFolders(userNodesFolder, cfgFolder))
+        foreach (var childNode in AddFolders(userNodesFolder, cfgFolder, folderPath))
         {
             yield return childNode;
         }
     }
 
-    private IEnumerable<NodeWithIntervals> AddFolders(FolderState folder, ConfigFolder cfgFolder)
+    private IEnumerable<NodeWithIntervals> AddFolders(FolderState folder, ConfigFolder cfgFolder, string pathPrefix)
     {
         if (cfgFolder.FolderList is null)
         {
@@ -204,7 +215,7 @@ public partial class UserDefinedPluginNodes(TimeService timeService, ILogger log
 
         foreach (var childFolder in cfgFolder.FolderList)
         {
-            foreach (var node in AddNodes(folder, childFolder))
+            foreach (var node in AddNodes(folder, childFolder, pathPrefix))
             {
                 yield return node;
             }
@@ -250,6 +261,76 @@ public partial class UserDefinedPluginNodes(TimeService timeService, ILogger log
         };
     }
 
+    private void CreateMethod(FolderState parent, ConfigNode node, NodeId nodeId)
+    {
+        MethodState method = _plcNodeManager.CreateMethod(parent, (string)node.NodeId.ToString()!, node.Name, node.Description, NamespaceType.OpcPlcApplications);
+
+        ushort namespaceIndex = _plcNodeManager.NamespaceIndexes[(int)NamespaceType.OpcPlcApplications];
+
+        method.InputArguments = new PropertyState<Argument[]>(method)
+        {
+            NodeId = new NodeId(nodeId.Identifier + "_InputArguments", namespaceIndex),
+            BrowseName = BrowseNames.InputArguments,
+            DisplayName = new LocalizedText(BrowseNames.InputArguments),
+            TypeDefinitionId = VariableTypeIds.PropertyType,
+            ReferenceTypeId = ReferenceTypeIds.HasProperty,
+            DataType = DataTypeIds.Argument,
+            ValueRank = ValueRanks.OneDimension,
+            ArrayDimensions = new ReadOnlyList<uint>(new List<uint> { 0 }),
+            Value = new[]
+            {
+                new Argument { Name = "fermenterName", DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar },
+                new Argument { Name = "targetTemp", DataType = DataTypeIds.Double, ValueRank = ValueRanks.Scalar },
+            },
+            StatusCode = StatusCodes.Good,
+        };
+
+        method.OutputArguments = new PropertyState<Argument[]>(method)
+        {
+            NodeId = new NodeId(nodeId.Identifier + "_OutputArguments", namespaceIndex),
+            BrowseName = BrowseNames.OutputArguments,
+            DisplayName = new LocalizedText(BrowseNames.OutputArguments),
+            TypeDefinitionId = VariableTypeIds.PropertyType,
+            ReferenceTypeId = ReferenceTypeIds.HasProperty,
+            DataType = DataTypeIds.Argument,
+            ValueRank = ValueRanks.OneDimension,
+            ArrayDimensions = new ReadOnlyList<uint>(new List<uint> { 0 }),
+            Value = new[]
+            {
+                new Argument { Name = "success", DataType = DataTypeIds.Boolean, ValueRank = ValueRanks.Scalar },
+            },
+            StatusCode = StatusCodes.Good,
+        };
+
+        method.AddChild(method.InputArguments);
+        method.AddChild(method.OutputArguments);
+
+        method.OnCallMethod2 = (ISystemContext context, MethodState methodHandle, NodeId objectId, IList<object> inputArguments, IList<object> outputArguments) =>
+        {
+            string fermenterName = (string)inputArguments[0];
+            double targetTemp = (double)inputArguments[1];
+
+            string nodeIdString = $"Fermenter.{fermenterName}.Temperature.SP";
+            var targetNodeId = new NodeId(nodeIdString, namespaceIndex);
+
+            if (_variablesByNodeId.TryGetValue(targetNodeId, out var variable))
+            {
+                variable.Value = targetTemp;
+                variable.Timestamp = _timeService.Now();
+                variable.ClearChangeMasks(context, false);
+            }
+            else
+            {
+                LogMethodTargetNodeNotFound(nodeIdString);
+            }
+
+            outputArguments[0] = true;
+            return ServiceResult.Good;
+        };
+
+        _plcNodeManager.AddPredefinedNode(method);
+    }
+
     [LoggerMessage(Level = LogLevel.Information, Message = "Processing node information configured in {NodesFileName}")]
     partial void LogProcessingNodeInformation(string nodesFileName);
 
@@ -273,4 +354,7 @@ public partial class UserDefinedPluginNodes(TimeService timeService, ILogger log
 
     [LoggerMessage(Level = LogLevel.Error, Message = "AccessLevel {AccessLevel} of node {Name} is not supported. Defaulting to CurrentReadOrWrite")]
     partial void LogUnsupportedAccessLevel(string accessLevel, string name);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Method SetTemperature target node {TargetNodeId} not found")]
+    partial void LogMethodTargetNodeNotFound(string targetNodeId);
 }

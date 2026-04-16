@@ -67,29 +67,39 @@
                                     <TextBox Text="{Binding NodeId}" />
                                     <TextBlock Text="Name" />
                                     <TextBox Text="{Binding Name}" />
-                                    <TextBlock Text="DataType" />
-                                    <TextBox Text="{Binding DataType}" />
-                                    <TextBlock Text="ValueRank" />
-                                    <NumericUpDown Value="{Binding ValueRank}" />
-                                    <TextBlock Text="AccessLevel" />
-                                    <TextBox Text="{Binding AccessLevel}" />
                                     <TextBlock Text="Description" />
                                     <TextBox Text="{Binding Description}" />
-                                    <TextBlock Text="Value" />
-                                    <TextBox Text="{Binding Value}" />
 
-                                    <Border BorderBrush="LightGray" BorderThickness="0,1,0,0" Margin="0,8,0,0" Padding="0,8,0,0">
-                                        <StackPanel Spacing="8">
-                                            <TextBlock Text="Simulation" FontWeight="Bold" />
-                                            <CheckBox Content="Enable Random Simulation" IsChecked="{Binding SimulationEnabled}" />
-                                            <StackPanel IsEnabled="{Binding SimulationEnabled}" Spacing="8">
-                                                <TextBlock Text="Min" />
-                                                <NumericUpDown Value="{Binding Simulation.Min}" />
-                                                <TextBlock Text="Max" />
-                                                <NumericUpDown Value="{Binding Simulation.Max}" />
+                                    <CheckBox Content="Is Method" IsChecked="{Binding IsMethod}" />
+
+                                    <StackPanel IsVisible="{Binding IsMethod}" Spacing="8">
+                                        <TextBlock Text="Method Name" />
+                                        <TextBox Text="{Binding Method.MethodName}" />
+                                    </StackPanel>
+
+                                    <StackPanel IsVisible="{Binding IsVariable}" Spacing="8">
+                                        <TextBlock Text="DataType" />
+                                        <TextBox Text="{Binding DataType}" />
+                                        <TextBlock Text="ValueRank" />
+                                        <NumericUpDown Value="{Binding ValueRank}" />
+                                        <TextBlock Text="AccessLevel" />
+                                        <TextBox Text="{Binding AccessLevel}" />
+                                        <TextBlock Text="Value" />
+                                        <TextBox Text="{Binding Value}" />
+
+                                        <Border BorderBrush="LightGray" BorderThickness="0,1,0,0" Margin="0,8,0,0" Padding="0,8,0,0">
+                                            <StackPanel Spacing="8">
+                                                <TextBlock Text="Simulation" FontWeight="Bold" />
+                                                <CheckBox Content="Enable Random Simulation" IsChecked="{Binding SimulationEnabled}" />
+                                                <StackPanel IsEnabled="{Binding SimulationEnabled}" Spacing="8">
+                                                    <TextBlock Text="Min" />
+                                                    <NumericUpDown Value="{Binding Simulation.Min}" />
+                                                    <TextBlock Text="Max" />
+                                                    <NumericUpDown Value="{Binding Simulation.Max}" />
+                                                </StackPanel>
                                             </StackPanel>
-                                        </StackPanel>
-                                    </Border>
+                                        </Border>
+                                    </StackPanel>
                                 </StackPanel>
                             </DataTemplate>
                         </ContentControl.DataTemplates>
