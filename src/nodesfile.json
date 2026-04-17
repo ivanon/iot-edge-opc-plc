@@ -1,96 +1,528 @@
 {
-  "Folder": "MyTelemetry",
+  "Folder": "Fermenter",
   "FolderList": [
     {
-      "Folder": "Child",
-      "NodeList": [
+      "Folder": "F11",
+      "FolderList": [
         {
-          "NodeId": 9999,
-          "Name": "Child Node",
-          "Description": "Child Node for testing"
+          "Folder": "Status",
+          "NodeList": [
+            {
+              "NodeId": "Fermenter.F11.Status.SystemTime",
+              "Name": "SystemTime",
+              "DataType": "DateTime",
+              "AccessLevel": "CurrentRead",
+              "Description": "绝对时钟"
+            }
+          ]
         },
         {
-          "NodeId": "c6522393-5ca1-4547-9551-29d110ca4a3f",
-          "Name": "Guid",
-          "Description": "Guid test"
+          "Folder": "Temperature",
+          "NodeList": [
+            {
+              "NodeId": "Fermenter.F11.Temperature.PV",
+              "Name": "PV",
+              "DataType": "Float",
+              "AccessLevel": "CurrentRead",
+              "Description": "罐温当前值"
+            },
+            {
+              "NodeId": "Fermenter.F11.Temperature.SP",
+              "Name": "SP",
+              "DataType": "Float",
+              "AccessLevel": "CurrentReadOrWrite",
+              "Description": "罐温设定值"
+            },
+            {
+              "NodeId": "Fermenter.F11.Temperature.RawADC",
+              "Name": "RawADC",
+              "DataType": "UInt16",
+              "AccessLevel": "CurrentRead",
+              "Description": "温度原始ADC"
+            }
+          ]
+        },
+        {
+          "Folder": "pHControl",
+          "NodeList": [
+            {
+              "NodeId": "Fermenter.F11.pHControl.PV",
+              "Name": "PV",
+              "DataType": "Float",
+              "AccessLevel": "CurrentRead",
+              "Description": "pH当前值"
+            },
+            {
+              "NodeId": "Fermenter.F11.pHControl.SP",
+              "Name": "SP",
+              "DataType": "Float",
+              "AccessLevel": "CurrentReadOrWrite",
+              "Description": "pH设定值"
+            },
+            {
+              "NodeId": "Fermenter.F11.pHControl.AcidPumpSpeed",
+              "Name": "AcidPumpSpeed",
+              "DataType": "Float",
+              "AccessLevel": "CurrentReadOrWrite",
+              "Description": "酸泵转速"
+            },
+            {
+              "NodeId": "Fermenter.F11.pHControl.RawADC",
+              "Name": "RawADC",
+              "DataType": "UInt16",
+              "AccessLevel": "CurrentRead",
+              "Description": "pH原始ADC"
+            }
+          ]
+        },
+        {
+          "Folder": "DOControl",
+          "NodeList": [
+            {
+              "NodeId": "Fermenter.F11.DOControl.PV",
+              "Name": "PV",
+              "DataType": "Float",
+              "AccessLevel": "CurrentRead",
+              "Description": "DO当前值"
+            },
+            {
+              "NodeId": "Fermenter.F11.DOControl.SP_Upper",
+              "Name": "SP_Upper",
+              "DataType": "Float",
+              "AccessLevel": "CurrentReadOrWrite",
+              "Description": "DO设定上限"
+            },
+            {
+              "NodeId": "Fermenter.F11.DOControl.SP_Lower",
+              "Name": "SP_Lower",
+              "DataType": "Float",
+              "AccessLevel": "CurrentReadOrWrite",
+              "Description": "DO设定下限"
+            },
+            {
+              "NodeId": "Fermenter.F11.DOControl.AgitationLinkEnable",
+              "Name": "AgitationLinkEnable",
+              "DataType": "Boolean",
+              "AccessLevel": "CurrentReadOrWrite",
+              "Description": "转速关联使能"
+            },
+            {
+              "NodeId": "Fermenter.F11.DOControl.RawADC",
+              "Name": "RawADC",
+              "DataType": "UInt16",
+              "AccessLevel": "CurrentRead",
+              "Description": "DO原始ADC"
+            }
+          ]
+        },
+        {
+          "Folder": "Control",
+          "NodeList": [
+            {
+              "NodeId": "Fermenter.F11.Control.DOMode",
+              "Name": "DOMode",
+              "DataType": "Byte",
+              "AccessLevel": "CurrentReadOrWrite",
+              "Description": "DO控制模式"
+            },
+            {
+              "NodeId": "Fermenter.F11.Control.pHMode",
+              "Name": "pHMode",
+              "DataType": "Byte",
+              "AccessLevel": "CurrentReadOrWrite",
+              "Description": "pH控制模式"
+            },
+            {
+              "NodeId": "Fermenter.F11.Control.AgitationLink",
+              "Name": "AgitationLink",
+              "DataType": "Boolean",
+              "AccessLevel": "CurrentReadOrWrite",
+              "Description": "转速关联"
+            }
+          ]
+        },
+        {
+          "Folder": "Alarm",
+          "NodeList": [
+            {
+              "NodeId": "Fermenter.F11.Alarm.StatusWord",
+              "Name": "StatusWord",
+              "DataType": "UInt32",
+              "AccessLevel": "CurrentRead",
+              "Description": "报警状态字"
+            },
+            {
+              "NodeId": "Fermenter.F11.Alarm.pHEnable",
+              "Name": "pHEnable",
+              "DataType": "Boolean",
+              "AccessLevel": "CurrentReadOrWrite",
+              "Description": "pH报警使能"
+            }
+          ]
+        },
+        {
+          "Folder": "Pressure",
+          "NodeList": [
+            {
+              "NodeId": "Fermenter.F11.Pressure.PV",
+              "Name": "PV",
+              "DataType": "Float",
+              "AccessLevel": "CurrentRead",
+              "Description": "罐压当前值"
+            }
+          ]
         }
-      ]
+      ],
+      "NodeList": []
+    },
+    {
+      "Folder": "F12",
+      "FolderList": [
+        {
+          "Folder": "Status",
+          "NodeList": [
+            {
+              "NodeId": "Fermenter.F12.Status.SystemTime",
+              "Name": "SystemTime",
+              "DataType": "DateTime",
+              "AccessLevel": "CurrentRead",
+              "Description": "绝对时钟"
+            }
+          ]
+        },
+        {
+          "Folder": "Temperature",
+          "NodeList": [
+            {
+              "NodeId": "Fermenter.F12.Temperature.PV",
+              "Name": "PV",
+              "DataType": "Float",
+              "AccessLevel": "CurrentRead",
+              "Description": "罐温当前值"
+            },
+            {
+              "NodeId": "Fermenter.F12.Temperature.SP",
+              "Name": "SP",
+              "DataType": "Float",
+              "AccessLevel": "CurrentReadOrWrite",
+              "Description": "罐温设定值"
+            },
+            {
+              "NodeId": "Fermenter.F12.Temperature.RawADC",
+              "Name": "RawADC",
+              "DataType": "UInt16",
+              "AccessLevel": "CurrentRead",
+              "Description": "温度原始ADC"
+            }
+          ]
+        },
+        {
+          "Folder": "pHControl",
+          "NodeList": [
+            {
+              "NodeId": "Fermenter.F12.pHControl.PV",
+              "Name": "PV",
+              "DataType": "Float",
+              "AccessLevel": "CurrentRead",
+              "Description": "pH当前值"
+            },
+            {
+              "NodeId": "Fermenter.F12.pHControl.SP",
+              "Name": "SP",
+              "DataType": "Float",
+              "AccessLevel": "CurrentReadOrWrite",
+              "Description": "pH设定值"
+            },
+            {
+              "NodeId": "Fermenter.F12.pHControl.AcidPumpSpeed",
+              "Name": "AcidPumpSpeed",
+              "DataType": "Float",
+              "AccessLevel": "CurrentReadOrWrite",
+              "Description": "酸泵转速"
+            },
+            {
+              "NodeId": "Fermenter.F12.pHControl.RawADC",
+              "Name": "RawADC",
+              "DataType": "UInt16",
+              "AccessLevel": "CurrentRead",
+              "Description": "pH原始ADC"
+            }
+          ]
+        },
+        {
+          "Folder": "DOControl",
+          "NodeList": [
+            {
+              "NodeId": "Fermenter.F12.DOControl.PV",
+              "Name": "PV",
+              "DataType": "Float",
+              "AccessLevel": "CurrentRead",
+              "Description": "DO当前值"
+            },
+            {
+              "NodeId": "Fermenter.F12.DOControl.SP_Upper",
+              "Name": "SP_Upper",
+              "DataType": "Float",
+              "AccessLevel": "CurrentReadOrWrite",
+              "Description": "DO设定上限"
+            },
+            {
+              "NodeId": "Fermenter.F12.DOControl.SP_Lower",
+              "Name": "SP_Lower",
+              "DataType": "Float",
+              "AccessLevel": "CurrentReadOrWrite",
+              "Description": "DO设定下限"
+            },
+            {
+              "NodeId": "Fermenter.F12.DOControl.AgitationLinkEnable",
+              "Name": "AgitationLinkEnable",
+              "DataType": "Boolean",
+              "AccessLevel": "CurrentReadOrWrite",
+              "Description": "转速关联使能"
+            },
+            {
+              "NodeId": "Fermenter.F12.DOControl.RawADC",
+              "Name": "RawADC",
+              "DataType": "UInt16",
+              "AccessLevel": "CurrentRead",
+              "Description": "DO原始ADC"
+            }
+          ]
+        },
+        {
+          "Folder": "Control",
+          "NodeList": [
+            {
+              "NodeId": "Fermenter.F12.Control.DOMode",
+              "Name": "DOMode",
+              "DataType": "Byte",
+              "AccessLevel": "CurrentReadOrWrite",
+              "Description": "DO控制模式"
+            },
+            {
+              "NodeId": "Fermenter.F12.Control.pHMode",
+              "Name": "pHMode",
+              "DataType": "Byte",
+              "AccessLevel": "CurrentReadOrWrite",
+              "Description": "pH控制模式"
+            },
+            {
+              "NodeId": "Fermenter.F12.Control.AgitationLink",
+              "Name": "AgitationLink",
+              "DataType": "Boolean",
+              "AccessLevel": "CurrentReadOrWrite",
+              "Description": "转速关联"
+            }
+          ]
+        },
+        {
+          "Folder": "Alarm",
+          "NodeList": [
+            {
+              "NodeId": "Fermenter.F12.Alarm.StatusWord",
+              "Name": "StatusWord",
+              "DataType": "UInt32",
+              "AccessLevel": "CurrentRead",
+              "Description": "报警状态字"
+            },
+            {
+              "NodeId": "Fermenter.F12.Alarm.pHEnable",
+              "Name": "pHEnable",
+              "DataType": "Boolean",
+              "AccessLevel": "CurrentReadOrWrite",
+              "Description": "pH报警使能"
+            }
+          ]
+        },
+        {
+          "Folder": "Pressure",
+          "NodeList": [
+            {
+              "NodeId": "Fermenter.F12.Pressure.PV",
+              "Name": "PV",
+              "DataType": "Float",
+              "AccessLevel": "CurrentRead",
+              "Description": "罐压当前值"
+            }
+          ]
+        }
+      ],
+      "NodeList": []
+    },
+    {
+      "Folder": "F13",
+      "FolderList": [
+        {
+          "Folder": "Status",
+          "NodeList": [
+            {
+              "NodeId": "Fermenter.F13.Status.SystemTime",
+              "Name": "SystemTime",
+              "DataType": "DateTime",
+              "AccessLevel": "CurrentRead",
+              "Description": "绝对时钟"
+            }
+          ]
+        },
+        {
+          "Folder": "Temperature",
+          "NodeList": [
+            {
+              "NodeId": "Fermenter.F13.Temperature.PV",
+              "Name": "PV",
+              "DataType": "Float",
+              "AccessLevel": "CurrentRead",
+              "Description": "罐温当前值"
+            },
+            {
+              "NodeId": "Fermenter.F13.Temperature.SP",
+              "Name": "SP",
+              "DataType": "Float",
+              "AccessLevel": "CurrentReadOrWrite",
+              "Description": "罐温设定值"
+            },
+            {
+              "NodeId": "Fermenter.F13.Temperature.RawADC",
+              "Name": "RawADC",
+              "DataType": "UInt16",
+              "AccessLevel": "CurrentRead",
+              "Description": "温度原始ADC"
+            }
+          ]
+        },
+        {
+          "Folder": "pHControl",
+          "NodeList": [
+            {
+              "NodeId": "Fermenter.F13.pHControl.PV",
+              "Name": "PV",
+              "DataType": "Float",
+              "AccessLevel": "CurrentRead",
+              "Description": "pH当前值"
+            },
+            {
+              "NodeId": "Fermenter.F13.pHControl.SP",
+              "Name": "SP",
+              "DataType": "Float",
+              "AccessLevel": "CurrentReadOrWrite",
+              "Description": "pH设定值"
+            },
+            {
+              "NodeId": "Fermenter.F13.pHControl.AcidPumpSpeed",
+              "Name": "AcidPumpSpeed",
+              "DataType": "Float",
+              "AccessLevel": "CurrentReadOrWrite",
+              "Description": "酸泵转速"
+            },
+            {
+              "NodeId": "Fermenter.F13.pHControl.RawADC",
+              "Name": "RawADC",
+              "DataType": "UInt16",
+              "AccessLevel": "CurrentRead",
+              "Description": "pH原始ADC"
+            }
+          ]
+        },
+        {
+          "Folder": "DOControl",
+          "NodeList": [
+            {
+              "NodeId": "Fermenter.F13.DOControl.PV",
+              "Name": "PV",
+              "DataType": "Float",
+              "AccessLevel": "CurrentRead",
+              "Description": "DO当前值"
+            },
+            {
+              "NodeId": "Fermenter.F13.DOControl.SP_Upper",
+              "Name": "SP_Upper",
+              "DataType": "Float",
+              "AccessLevel": "CurrentReadOrWrite",
+              "Description": "DO设定上限"
+            },
+            {
+              "NodeId": "Fermenter.F13.DOControl.SP_Lower",
+              "Name": "SP_Lower",
+              "DataType": "Float",
+              "AccessLevel": "CurrentReadOrWrite",
+              "Description": "DO设定下限"
+            },
+            {
+              "NodeId": "Fermenter.F13.DOControl.AgitationLinkEnable",
+              "Name": "AgitationLinkEnable",
+              "DataType": "Boolean",
+              "AccessLevel": "CurrentReadOrWrite",
+              "Description": "转速关联使能"
+            },
+            {
+              "NodeId": "Fermenter.F13.DOControl.RawADC",
+              "Name": "RawADC",
+              "DataType": "UInt16",
+              "AccessLevel": "CurrentRead",
+              "Description": "DO原始ADC"
+            }
+          ]
+        },
+        {
+          "Folder": "Control",
+          "NodeList": [
+            {
+              "NodeId": "Fermenter.F13.Control.DOMode",
+              "Name": "DOMode",
+              "DataType": "Byte",
+              "AccessLevel": "CurrentReadOrWrite",
+              "Description": "DO控制模式"
+            },
+            {
+              "NodeId": "Fermenter.F13.Control.pHMode",
+              "Name": "pHMode",
+              "DataType": "Byte",
+              "AccessLevel": "CurrentReadOrWrite",
+              "Description": "pH控制模式"
+            },
+            {
+              "NodeId": "Fermenter.F13.Control.AgitationLink",
+              "Name": "AgitationLink",
+              "DataType": "Boolean",
+              "AccessLevel": "CurrentReadOrWrite",
+              "Description": "转速关联"
+            }
+          ]
+        },
+        {
+          "Folder": "Alarm",
+          "NodeList": [
+            {
+              "NodeId": "Fermenter.F13.Alarm.StatusWord",
+              "Name": "StatusWord",
+              "DataType": "UInt32",
+              "AccessLevel": "CurrentRead",
+              "Description": "报警状态字"
+            },
+            {
+              "NodeId": "Fermenter.F13.Alarm.pHEnable",
+              "Name": "pHEnable",
+              "DataType": "Boolean",
+              "AccessLevel": "CurrentReadOrWrite",
+              "Description": "pH报警使能"
+            }
+          ]
+        },
+        {
+          "Folder": "Pressure",
+          "NodeList": [
+            {
+              "NodeId": "Fermenter.F13.Pressure.PV",
+              "Name": "PV",
+              "DataType": "Float",
+              "AccessLevel": "CurrentRead",
+              "Description": "罐压当前值"
+            }
+          ]
+        }
+      ],
+      "NodeList": []
     }
   ],
-  "NodeList": [
-    {
-      "NodeId": 1023,
-      "Name": "ActualSpeed",
-      "Description": "Rotational speed"
-    },
-    {
-      "NodeId": "aRMS"
-    },
-    {
-      "NodeId": "1025",
-      "Name": "DKW",
-      "DataType": "Float",
-      "ValueRank": -1,
-      "AccessLevel": "CurrentReadOrWrite",
-      "Description": "Diagnostic characteristic value"
-    },
-    {
-      "NodeId": "1026",
-      "Name": "Peak value",
-      "DataType": "Float",
-      "ValueRank": -1,
-      "AccessLevel": "CurrentReadOrWrite",
-      "Description": "Peak value of vibration acceleration"
-    },
-    {
-      "NodeId": "1027",
-      "Name": "Vibration Velocity",
-      "DataType": "Float",
-      "ValueRank": -1,
-      "AccessLevel": "CurrentReadOrWrite",
-      "Description": "Mean of the vibration velocity"
-    },
-    {
-      "NodeId": "1029",
-      "Name": "Active power",
-      "DataType": "Float",
-      "ValueRank": -1,
-      "AccessLevel": "CurrentReadOrWrite",
-      "Description": "Active power"
-    },
-    {
-      "NodeId": "1030",
-      "Name": "SampleStringNode",
-      "DataType": "String",
-      "Value": "Some value"
-    },
-    {
-      "NodeId": "1031",
-      "Name": "SampleUint32Node",
-      "DataType": "UInt32",
-      "Value": 1234
-    },
-    {
-      "NodeId": "1032",
-      "Name": "SampleInt32Node",
-      "DataType": "Int32",
-      "Value": -4321
-    },
-    {
-      "NodeId": "1033",
-      "Name": "SampleBooleanNode",
-      "DataType": "Boolean",
-      "Value": true
-    },
-    {
-      "NodeId": "1048",
-      "Name": "Int32 array",
-      "DataType": "Int32",
-      "ValueRank": 1,
-      "ArrayDimensions": [ 5 ],
-      "AccessLevel": "CurrentReadOrWrite",
-      "Description": "Test array of 5 Int32 elements",
-      "Value": [ 1, 2, 3, 4, 5 ]
-    }
-  ]
+  "NodeList": []
 }
