@@ -79,6 +79,7 @@ public class NodeItem : NodeItemBase
                 Simulation.StepPerSecond = 1;
                 Simulation.Values ??= new List<double>();
                 Simulation.IntervalSeconds = 1;
+                this.RaisePropertyChanged(nameof(SimulationType));
             }
             else
             {
@@ -86,8 +87,23 @@ public class NodeItem : NodeItemBase
                 {
                     Simulation.Type = null;
                 }
+                this.RaisePropertyChanged(nameof(SimulationType));
             }
             this.RaisePropertyChanged(nameof(SimulationEnabled));
+        }
+    }
+
+    public string? SimulationType
+    {
+        get => Simulation?.Type;
+        set
+        {
+            if (Simulation != null && Simulation.Type != value)
+            {
+                Simulation.Type = value;
+                this.RaisePropertyChanged(nameof(SimulationType));
+                this.RaisePropertyChanged(nameof(Simulation));
+            }
         }
     }
 

@@ -94,10 +94,10 @@
 
                                                 <StackPanel IsEnabled="{Binding SimulationEnabled}" Spacing="8">
                                                     <TextBlock Text="Mode" />
-                                                    <ComboBox SelectedItem="{Binding Simulation.Type}" ItemsSource="{Binding SimulationModes}" />
+                                                    <ComboBox SelectedItem="{Binding SimulationType}" ItemsSource="{Binding SimulationModes}" MinWidth="120" />
 
                                                     <!-- Random parameters -->
-                                                    <StackPanel IsVisible="{Binding Simulation.Type, Converter={StaticResource StringEqualsConverter}, ConverterParameter=Random}">
+                                                    <StackPanel IsVisible="{Binding SimulationType, Converter={StaticResource StringEqualsConverter}, ConverterParameter=Random}">
                                                         <TextBlock Text="Min" />
                                                         <NumericUpDown Value="{Binding Simulation.Min}" />
                                                         <TextBlock Text="Max" />
@@ -105,7 +105,7 @@
                                                     </StackPanel>
 
                                                     <!-- Sine parameters -->
-                                                    <StackPanel IsVisible="{Binding Simulation.Type, Converter={StaticResource StringEqualsConverter}, ConverterParameter=Sine}">
+                                                    <StackPanel IsVisible="{Binding SimulationType, Converter={StaticResource StringEqualsConverter}, ConverterParameter=Sine}">
                                                         <TextBlock Text="Base" />
                                                         <NumericUpDown Value="{Binding Simulation.Base}" />
                                                         <TextBlock Text="Amplitude" />
@@ -115,7 +115,7 @@
                                                     </StackPanel>
 
                                                     <!-- Ramp parameters -->
-                                                    <StackPanel IsVisible="{Binding Simulation.Type, Converter={StaticResource StringEqualsConverter}, ConverterParameter=Ramp}">
+                                                    <StackPanel IsVisible="{Binding SimulationType, Converter={StaticResource StringEqualsConverter}, ConverterParameter=Ramp}">
                                                         <TextBlock Text="Min" />
                                                         <NumericUpDown Value="{Binding Simulation.Min}" />
                                                         <TextBlock Text="Max" />
@@ -125,7 +125,7 @@
                                                     </StackPanel>
 
                                                     <!-- Step parameters -->
-                                                    <StackPanel IsVisible="{Binding Simulation.Type, Converter={StaticResource StringEqualsConverter}, ConverterParameter=Step}">
+                                                    <StackPanel IsVisible="{Binding SimulationType, Converter={StaticResource StringEqualsConverter}, ConverterParameter=Step}">
                                                         <TextBlock Text="Interval (seconds)" />
                                                         <NumericUpDown Value="{Binding Simulation.IntervalSeconds}" />
                                                         <TextBlock Text="Values" />
