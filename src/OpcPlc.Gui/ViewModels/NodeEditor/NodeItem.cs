@@ -145,6 +145,12 @@ public class NodeItem : NodeItemBase
                     Type = config.Simulation.Type,
                     Min = config.Simulation.Min,
                     Max = config.Simulation.Max,
+                    Base = config.Simulation.Base,
+                    Amplitude = config.Simulation.Amplitude,
+                    PeriodSeconds = config.Simulation.PeriodSeconds,
+                    StepPerSecond = config.Simulation.StepPerSecond,
+                    Values = config.Simulation.Values,
+                    IntervalSeconds = config.Simulation.IntervalSeconds,
                 };
         }
 
@@ -187,6 +193,12 @@ public class NodeItem : NodeItemBase
                     Type = Simulation.Type,
                     Min = Simulation.Min,
                     Max = Simulation.Max,
+                    Base = Simulation.Base,
+                    Amplitude = Simulation.Amplitude,
+                    PeriodSeconds = Simulation.PeriodSeconds,
+                    StepPerSecond = Simulation.StepPerSecond,
+                    Values = Simulation.Values,
+                    IntervalSeconds = Simulation.IntervalSeconds,
                 },
         };
     }

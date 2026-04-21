@@ -183,4 +183,38 @@ public class NodeItemTests
         Assert.NotNull(item.Simulation);
         Assert.Equal("Random", item.Simulation.Type);
     }
+
+    [Fact]
+    public void RoundTrip_Preserves_Sine_SimulationConfig()
+    {
+        var original = new ConfigNode
+        {
+            NodeId = "Fermenter.F11.Temperature.PV",
+            Name = "PV",
+            DataType = "Float",
+            Simulation = new SimulationConfig
+            {
+                Type = "Sine",
+                Min = 0,
+                Max = 100,
+                Base = 36.5,
+                Amplitude = 1.5,
+                PeriodSeconds = 60,
+            },
+        };
+
+        var item = NodeItem.FromConfigNode(original);
+        Assert.True(item.SimulationEnabled);
+        Assert.Equal("Sine", item.Simulation?.Type);
+        Assert.Equal(36.5, item.Simulation?.Base);
+        Assert.Equal(1.5, item.Simulation?.Amplitude);
+        Assert.Equal(60, item.Simulation?.PeriodSeconds);
+
+        var result = item.ToConfigNode();
+        Assert.NotNull(result.Simulation);
+        Assert.Equal("Sine", result.Simulation.Type);
+        Assert.Equal(36.5, result.Simulation.Base);
+        Assert.Equal(1.5, result.Simulation.Amplitude);
+        Assert.Equal(60, result.Simulation.PeriodSeconds);
+    }
 }
