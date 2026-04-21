@@ -72,6 +72,8 @@ public class NodeItem : NodeItemBase
                 if (string.IsNullOrEmpty(Simulation.Type))
                 {
                     Simulation.Type = "Random";
+                    Simulation.Min = 0;
+                    Simulation.Max = 100;
                 }
             }
             else
