@@ -22,6 +22,15 @@ public partial class UserDefinedPluginNodes(TimeService timeService, ILogger log
     private readonly List<ITimer> _simulationTimers = new();
     private readonly Random _random = new();
     private readonly Dictionary<NodeId, BaseDataVariableState> _variablesByNodeId = new();
+    private readonly Dictionary<NodeId, SimulationState> _simulationStates = new();
+
+    private class SimulationState
+    {
+        public double ElapsedSeconds;
+        public double CurrentRamp;
+        public int StepIndex;
+        public bool RampDirectionUp = true;
+    }
 
     public void AddOptions(Mono.Options.OptionSet optionSet)
     {
@@ -48,7 +57,7 @@ public partial class UserDefinedPluginNodes(TimeService timeService, ILogger log
             return;
         }
 
-        int periodMs = _plcNodeManager.PlcSimulationInstance.SimulationCycleLength;
+        int periodMs = 1000; // 统一 1Hz
 
         foreach (var (variable, config) in _simulatedVariables)
         {
@@ -69,36 +78,105 @@ public partial class UserDefinedPluginNodes(TimeService timeService, ILogger log
         }
 
         _simulationTimers.Clear();
+        _simulationStates.Clear();
     }
 
     private void UpdateSimulatedValue(BaseDataVariableState variable, ConfigNode config)
     {
-        if (config.Simulation?.Type != "Random")
+        var sim = config.Simulation;
+        if (sim == null || string.IsNullOrEmpty(sim.Type))
         {
             return;
         }
 
-        double min = config.Simulation.Min;
-        double max = config.Simulation.Max;
-        double randomValue = min + _random.NextDouble() * (max - min);
+        var nodeId = variable.NodeId;
+        if (!_simulationStates.TryGetValue(nodeId, out var state))
+        {
+            state = new SimulationState
+            {
+                CurrentRamp = sim.Min,
+            };
+            _simulationStates[nodeId] = state;
+        }
 
-        object value = config.DataType switch
+        double value;
+
+        switch (sim.Type)
+        {
+            case "Random":
+                value = sim.Min + _random.NextDouble() * (sim.Max - sim.Min);
+                break;
+
+            case "Sine":
+                {
+                    double angle = 2 * Math.PI * state.ElapsedSeconds / sim.PeriodSeconds;
+                    value = sim.Base + sim.Amplitude * Math.Sin(angle);
+                    state.ElapsedSeconds += 1.0;
+                }
+                break;
+
+            case "Ramp":
+                {
+                    if (state.RampDirectionUp)
+                    {
+                        state.CurrentRamp += sim.StepPerSecond;
+                        if (state.CurrentRamp > sim.Max)
+                        {
+                            state.CurrentRamp = sim.Max;
+                            state.RampDirectionUp = false;
+                        }
+                    }
+                    else
+                    {
+                        state.CurrentRamp -= sim.StepPerSecond;
+                        if (state.CurrentRamp < sim.Min)
+                        {
+                            state.CurrentRamp = sim.Min;
+                            state.RampDirectionUp = true;
+                        }
+                    }
+                    value = state.CurrentRamp;
+                }
+                break;
+
+            case "Step":
+                {
+                    if (sim.Values == null || sim.Values.Count == 0)
+                    {
+                        return;
+                    }
+
+                    state.ElapsedSeconds += 1.0;
+                    if (state.ElapsedSeconds >= sim.IntervalSeconds)
+                    {
+                        state.ElapsedSeconds = 0;
+                        state.StepIndex = (state.StepIndex + 1) % sim.Values.Count;
+                    }
+                    value = sim.Values[state.StepIndex];
+                }
+                break;
+
+            default:
+                return;
+        }
+
+        object typedValue = config.DataType switch
         {
             "Boolean" => _random.NextDouble() >= 0.5,
-            "Float" => (float)randomValue,
-            "Double" => randomValue,
-            "UInt32" => (uint)Math.Clamp(randomValue, uint.MinValue, uint.MaxValue),
-            "Int32" => (int)Math.Clamp(randomValue, int.MinValue, int.MaxValue),
-            "UInt16" => (ushort)Math.Clamp(randomValue, ushort.MinValue, ushort.MaxValue),
-            "Int16" => (short)Math.Clamp(randomValue, short.MinValue, short.MaxValue),
-            "Byte" => (byte)Math.Clamp(randomValue, byte.MinValue, byte.MaxValue),
-            "SByte" => (sbyte)Math.Clamp(randomValue, sbyte.MinValue, sbyte.MaxValue),
-            "UInt64" => (ulong)Math.Clamp(randomValue, 0, long.MaxValue),
-            "Int64" => (long)Math.Clamp(randomValue, long.MinValue, long.MaxValue),
-            _ => randomValue,
+            "Float" => (float)value,
+            "Double" => value,
+            "UInt32" => (uint)Math.Clamp(value, uint.MinValue, uint.MaxValue),
+            "Int32" => (int)Math.Clamp(value, int.MinValue, int.MaxValue),
+            "UInt16" => (ushort)Math.Clamp(value, ushort.MinValue, ushort.MaxValue),
+            "Int16" => (short)Math.Clamp(value, short.MinValue, short.MaxValue),
+            "Byte" => (byte)Math.Clamp(value, byte.MinValue, byte.MaxValue),
+            "SByte" => (sbyte)Math.Clamp(value, sbyte.MinValue, sbyte.MaxValue),
+            "UInt64" => (ulong)Math.Clamp(value, 0, long.MaxValue),
+            "Int64" => (long)Math.Clamp(value, long.MinValue, long.MaxValue),
+            _ => value,
         };
 
-        variable.Value = value;
+        variable.Value = typedValue;
         variable.Timestamp = _timeService.Now();
         variable.ClearChangeMasks(_plcNodeManager.SystemContext, false);
     }
