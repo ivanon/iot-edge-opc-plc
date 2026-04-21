@@ -1,5 +1,6 @@
 using OpcPlc.PluginNodes;
 using ReactiveUI;
+using System.Collections.Generic;
 
 namespace OpcPlc.Gui.ViewModels.NodeEditor;
 
@@ -68,13 +69,16 @@ public class NodeItem : NodeItemBase
         {
             if (value)
             {
-                Simulation ??= new SimulationConfig { Type = "Random", Min = 0, Max = 100 };
-                if (string.IsNullOrEmpty(Simulation.Type))
-                {
-                    Simulation.Type = "Random";
-                    Simulation.Min = 0;
-                    Simulation.Max = 100;
-                }
+                Simulation ??= new SimulationConfig();
+                Simulation.Type = "Random";
+                Simulation.Min = 0;
+                Simulation.Max = 100;
+                Simulation.Base = 0;
+                Simulation.Amplitude = 1;
+                Simulation.PeriodSeconds = 10;
+                Simulation.StepPerSecond = 1;
+                Simulation.Values ??= new List<double>();
+                Simulation.IntervalSeconds = 1;
             }
             else
             {
@@ -111,6 +115,8 @@ public class NodeItem : NodeItemBase
     }
 
     public bool IsVariable => !IsMethod;
+
+    public IReadOnlyList<string> SimulationModes { get; } = new[] { "Random", "Sine", "Ramp", "Step" };
 
     public MethodConfig? Method
     {

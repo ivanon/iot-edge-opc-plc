@@ -217,4 +217,37 @@ public class NodeItemTests
         Assert.Equal(1.5, result.Simulation.Amplitude);
         Assert.Equal(60, result.Simulation.PeriodSeconds);
     }
+
+    [Fact]
+    public void SimulationEnabled_SetTrue_Creates_Default_With_All_Fields()
+    {
+        var item = new NodeItem();
+        Assert.False(item.SimulationEnabled);
+
+        item.SimulationEnabled = true;
+
+        Assert.True(item.SimulationEnabled);
+        Assert.NotNull(item.Simulation);
+        Assert.Equal("Random", item.Simulation.Type);
+        Assert.Equal(0, item.Simulation.Min);
+        Assert.Equal(100, item.Simulation.Max);
+        Assert.Equal(0, item.Simulation.Base);
+        Assert.Equal(1, item.Simulation.Amplitude);
+        Assert.Equal(10, item.Simulation.PeriodSeconds);
+        Assert.Equal(1, item.Simulation.StepPerSecond);
+        Assert.NotNull(item.Simulation.Values);
+        Assert.Empty(item.Simulation.Values);
+        Assert.Equal(1, item.Simulation.IntervalSeconds);
+    }
+
+    [Fact]
+    public void Simulation_Type_Can_Be_Changed_To_Sine()
+    {
+        var item = new NodeItem();
+        item.SimulationEnabled = true;
+        item.Simulation!.Type = "Sine";
+
+        Assert.Equal("Sine", item.Simulation.Type);
+        Assert.True(item.SimulationEnabled);
+    }
 }
