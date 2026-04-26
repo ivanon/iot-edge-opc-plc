@@ -81,6 +81,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
         try
         {
+            // Persist latest editor changes before launching server so runtime reads the newest nodesfile.
+            SaveNodes();
+
             if (_opcPlcServer == null)
             {
                 _opcPlcServer = new OpcPlc.OpcPlcServer();
@@ -92,7 +95,7 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 try
                 {
-                    await _opcPlcServer.StartAsync(["--autoaccept", "--ut", "--dca", "--ph", "127.0.0.1", "--nf", _nodesFileService.ResolvedPath]).ConfigureAwait(false);
+                    await _opcPlcServer.StartAsync(["--autoaccept", "--ut", "--dca", "--ph", "0.0.0.0", "--nf", _nodesFileService.ResolvedPath]).ConfigureAwait(false);
                 }
                 catch
                 {
@@ -162,5 +165,10 @@ public partial class MainWindowViewModel : ViewModelBase
             });
             throw;
         }
+    }
+
+    public void SaveNodes()
+    {
+        _nodesFileService.Save(NodeEditor.Root);
     }
 }
