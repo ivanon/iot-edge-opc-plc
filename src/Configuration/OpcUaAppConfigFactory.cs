@@ -33,6 +33,8 @@ public partial class OpcUaAppConfigFactory(
     /// </summary>
     public async Task<ApplicationConfiguration> ConfigureAsync()
     {
+        NormalizeListenAllHostnameForCertificates();
+
         // instead of using a configuration XML file, configure everything programmatically
         var application = new ApplicationInstance(_telemetryContext) {
             ApplicationName = _config.ProgramName, // Name in the certificate, e.g. OpcPlc.
@@ -724,8 +726,35 @@ public partial class OpcUaAppConfigFactory(
             ct).ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// <c>0.0.0.0</c> is not a valid host name for OPC UA application certificates (SAN/DNS).
+    /// Map it to this machine's host name so endpoints and <see cref="OpcApplicationConfiguration.HostnameLabel"/> stay consistent with the self-signed cert.
+    /// </summary>
+    private void NormalizeListenAllHostnameForCertificates()
+    {
+        if (!string.Equals(_config.OpcUa.Hostname, "0.0.0.0", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        try
+        {
+            var resolved = Utils.GetHostName().ToLowerInvariant();
+            LogOpcUaHostnameMappedForCertificate(_config.OpcUa.Hostname, resolved);
+            _config.OpcUa.Hostname = resolved;
+        }
+        catch (Exception ex)
+        {
+            LogCouldNotGetHostname(ex);
+            _config.OpcUa.Hostname = "localhost";
+        }
+    }
+
     [LoggerMessage(Level = LogLevel.Warning, Message = "Could not get hostname.")]
     partial void LogCouldNotGetHostname(Exception exception);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "OPC UA hostname '{RequestedHostname}' is not valid for application certificates; using '{ResolvedHostname}' for endpoints and ApplicationUri.")]
+    partial void LogOpcUaHostnameMappedForCertificate(string requestedHostname, string resolvedHostname);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Alternate base addresses (for server binding and certificate DNSNames and IPAddresses extensions): {AlternateBaseAddresses}")]
     partial void LogAlternateBaseAddresses(IEnumerable<string> alternateBaseAddresses);

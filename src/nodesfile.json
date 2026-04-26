@@ -350,6 +350,19 @@
       "NodeList": []
     },
     {
+      "Folder": "Methods",
+      "NodeList": [
+        {
+          "NodeId": "SetTemperature",
+          "Name": "SetTemperature",
+          "Description": "设置罐温设定值",
+          "Method": {
+            "MethodName": "SetTemperature"
+          }
+        }
+      ]
+    },
+    {
       "Folder": "F13",
       "FolderList": [
         {

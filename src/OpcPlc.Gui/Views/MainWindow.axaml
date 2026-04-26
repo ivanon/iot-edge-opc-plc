@@ -1,0 +1,155 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:OpcPlc.Gui.ViewModels"
+        xmlns:ne="using:OpcPlc.Gui.ViewModels.NodeEditor"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="OpcPlc.Gui.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="OpcPlc.Gui">
+
+    <Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
+             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="8">
+            <Button Content="Start Server" Command="{Binding StartServerCommand}" />
+            <Button Content="Stop Server" Command="{Binding StopServerCommand}" />
+            <TextBlock Text="{Binding ServerStatusText}" VerticalAlignment="Center" />
+        </StackPanel>
+
+        <ListBox DockPanel.Dock="Bottom" Margin="8,0,8,8" Height="200"
+                 ItemsSource="{Binding LogLines}"
+                 ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                 ScrollViewer.VerticalScrollBarVisibility="Auto" />
+
+        <Grid Margin="8,0,8,8" ColumnDefinitions="300,*">
+            <DockPanel Grid.Column="0">
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="4" Margin="0,0,0,4">
+                    <Button Content="+ Folder" Command="{Binding NodeEditor.AddFolderCommand}" IsEnabled="{Binding !NodeEditor.IsReadOnly}" />
+                    <Button Content="+ Node" Command="{Binding NodeEditor.AddNodeCommand}" IsEnabled="{Binding !NodeEditor.IsReadOnly}" />
+                    <Button Content="Delete" Command="{Binding NodeEditor.DeleteCommand}" IsEnabled="{Binding !NodeEditor.IsReadOnly}" />
+                    <Button Content="Save" Command="{Binding SaveNodesCommand}" IsEnabled="{Binding !NodeEditor.IsReadOnly}" />
+                </StackPanel>
+                <TreeView ItemsSource="{Binding NodeEditor.Root.Children}"
+                          SelectedItem="{Binding NodeEditor.SelectedItem}">
+                <TreeView.DataTemplates>
+                    <TreeDataTemplate DataType="ne:FolderItem"
+                                       ItemsSource="{Binding Children}">
+                        <TextBlock Text="{Binding Name}" />
+                    </TreeDataTemplate>
+                    <DataTemplate DataType="ne:NodeItem">
+                        <TextBlock Text="{Binding Name}" />
+                    </DataTemplate>
+                </TreeView.DataTemplates>
+            </TreeView>
+            </DockPanel>
+
+            <Border Grid.Column="1" Margin="8,0,0,0" BorderBrush="Gray" BorderThickness="1" IsEnabled="{Binding !NodeEditor.IsReadOnly}">
+                <ScrollViewer>
+                    <ContentControl Content="{Binding NodeEditor.SelectedItem}" Margin="12">
+                        <ContentControl.DataTemplates>
+                            <DataTemplate DataType="ne:FolderItem">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="Folder" FontWeight="Bold" />
+                                    <TextBlock Text="Name" />
+                                    <TextBox Text="{Binding Name}" />
+                                </StackPanel>
+                            </DataTemplate>
+                            <DataTemplate DataType="ne:NodeItem">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="Node" FontWeight="Bold" />
+                                    <TextBlock Text="NodeId" />
+                                    <TextBox Text="{Binding NodeId}" />
+                                    <TextBlock Text="Name" />
+                                    <TextBox Text="{Binding Name}" />
+                                    <TextBlock Text="Description" />
+                                    <TextBox Text="{Binding Description}" />
+
+                                    <CheckBox Content="Is Method" IsChecked="{Binding IsMethod}" />
+
+                                    <StackPanel IsVisible="{Binding IsMethod}" Spacing="8">
+                                        <TextBlock Text="Method Name" />
+                                        <TextBox Text="{Binding Method.MethodName}" />
+                                    </StackPanel>
+
+                                    <StackPanel IsVisible="{Binding IsVariable}" Spacing="8">
+                                        <TextBlock Text="DataType" />
+                                        <TextBox Text="{Binding DataType}" />
+                                        <TextBlock Text="ValueRank" />
+                                        <NumericUpDown Value="{Binding ValueRank}" />
+                                        <TextBlock Text="AccessLevel" />
+                                        <TextBox Text="{Binding AccessLevel}" />
+                                        <TextBlock Text="Value" />
+                                        <TextBox Text="{Binding Value}" />
+
+                                        <Border BorderBrush="LightGray" BorderThickness="0,1,0,0" Margin="0,8,0,0" Padding="0,8,0,0">
+                                            <StackPanel Spacing="8">
+                                                <TextBlock Text="Simulation" FontWeight="Bold" />
+                                                <CheckBox Content="Enable Simulation" IsChecked="{Binding SimulationEnabled}" />
+
+                                                <StackPanel IsEnabled="{Binding SimulationEnabled}" Spacing="8">
+                                                    <TextBlock Text="Mode" />
+                                                    <ComboBox SelectedItem="{Binding SimulationType}" ItemsSource="{Binding SimulationModes}" MinWidth="120" />
+
+                                                    <!-- Random parameters -->
+                                                    <StackPanel IsVisible="{Binding SimulationType, Converter={StaticResource StringEqualsConverter}, ConverterParameter=Random}">
+                                                        <TextBlock Text="Min" />
+                                                        <NumericUpDown Value="{Binding Simulation.Min}" />
+                                                        <TextBlock Text="Max" />
+                                                        <NumericUpDown Value="{Binding Simulation.Max}" />
+                                                    </StackPanel>
+
+                                                    <!-- Sine parameters -->
+                                                    <StackPanel IsVisible="{Binding SimulationType, Converter={StaticResource StringEqualsConverter}, ConverterParameter=Sine}">
+                                                        <TextBlock Text="Base" />
+                                                        <NumericUpDown Value="{Binding Simulation.Base}" />
+                                                        <TextBlock Text="Amplitude" />
+                                                        <NumericUpDown Value="{Binding Simulation.Amplitude}" />
+                                                        <TextBlock Text="Period (seconds)" />
+                                                        <NumericUpDown Value="{Binding Simulation.PeriodSeconds}" />
+                                                    </StackPanel>
+
+                                                    <!-- Ramp parameters -->
+                                                    <StackPanel IsVisible="{Binding SimulationType, Converter={StaticResource StringEqualsConverter}, ConverterParameter=Ramp}">
+                                                        <TextBlock Text="Min" />
+                                                        <NumericUpDown Value="{Binding Simulation.Min}" />
+                                                        <TextBlock Text="Max" />
+                                                        <NumericUpDown Value="{Binding Simulation.Max}" />
+                                                        <TextBlock Text="Step per second" />
+                                                        <NumericUpDown Value="{Binding Simulation.StepPerSecond}" />
+                                                    </StackPanel>
+
+                                                    <!-- Step parameters -->
+                                                    <StackPanel IsVisible="{Binding SimulationType, Converter={StaticResource StringEqualsConverter}, ConverterParameter=Step}">
+                                                        <TextBlock Text="Interval (seconds)" />
+                                                        <NumericUpDown Value="{Binding Simulation.IntervalSeconds}" />
+                                                        <TextBlock Text="Values" />
+                                                        <ItemsControl ItemsSource="{Binding Simulation.Values}">
+                                                            <ItemsControl.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                                                        <NumericUpDown Value="{Binding}" Width="120" />
+                                                                    </StackPanel>
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
+                                                    </StackPanel>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ContentControl.DataTemplates>
+                    </ContentControl>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </DockPanel>
+
+</Window>

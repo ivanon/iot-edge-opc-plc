@@ -41,4 +41,10 @@ public class ConfigNode
     public string Description { get; set; }
 
     public object Value { get; set; }
+
+    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+    public SimulationConfig Simulation { get; set; }
+
+    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+    public MethodConfig Method { get; set; }
 }

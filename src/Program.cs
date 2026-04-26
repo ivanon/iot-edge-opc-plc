@@ -2,7 +2,7 @@ namespace OpcPlc;
 
 public static class Program
 {
-    public static OpcPlcServer OpcPlcServer { get; private set; }
+    public static OpcPlcServer OpcPlcServer { get; private set; } = null!;
 
     /// <summary>
     /// Synchronous main method of the app.

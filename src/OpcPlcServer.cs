@@ -37,6 +37,11 @@ public partial class OpcPlcServer
     /// </summary>
     public ILoggerFactory LoggerFactory { get; set; }
 
+    /// <summary>
+    /// Raised when the logger factory has been configured during startup.
+    /// </summary>
+    public event Action<ILoggerFactory> LoggerFactoryConfigured;
+
     private ILogger _logger;
 
     /// <summary>
@@ -113,10 +118,14 @@ public partial class OpcPlcServer
             LogLogLevel(Config.LogLevelCli);
 
             // Show OPC PLC version.
+            string executingAssemblyLocation = Assembly.GetExecutingAssembly().Location;
+            DateTime lastWriteTimeUtc = string.IsNullOrEmpty(executingAssemblyLocation)
+                ? DateTime.UtcNow
+                : File.GetLastWriteTimeUtc(executingAssemblyLocation);
             LogStartingUp(
                 Config.ProgramName,
                 version,
-                File.GetLastWriteTimeUtc(Assembly.GetExecutingAssembly().Location));
+                lastWriteTimeUtc);
             LogInformationalVersion(
                 Config.ProgramName,
                 (Attribute.GetCustomAttribute(Assembly.GetEntryAssembly(), typeof(AssemblyInformationalVersionAttribute)) as AssemblyInformationalVersionAttribute)?.InformationalVersion);
@@ -382,6 +391,7 @@ public partial class OpcPlcServer
 
         _telemetryContext = new OpcTelemetryContext(LoggerFactory, name, version);
         Logger = _telemetryContext.LoggerFactory.CreateLogger(name);
+        LoggerFactoryConfigured?.Invoke(LoggerFactory);
     }
 
     /// <summary>

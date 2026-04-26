@@ -1,6 +1,8 @@
 namespace OpcPlc.Configuration;
 
 using Opc.Ua;
+using System.Net;
+using System.Net.Sockets;
 
 /// <summary>
 /// Class for OPC Application configuration.
@@ -18,9 +20,25 @@ public partial class OpcApplicationConfiguration
         set => _hostname = value.ToLowerInvariant();
     }
 
-    public string HostnameLabel => _hostname.Contains('.')
-                                        ? _hostname[.._hostname.IndexOf('.')]
-                                        : _hostname;
+    public string HostnameLabel
+    {
+        get
+        {
+            if (IPAddress.TryParse(_hostname, out var parsed))
+            {
+                return parsed.AddressFamily switch
+                {
+                    AddressFamily.InterNetwork => _hostname.Replace('.', '-'),
+                    AddressFamily.InterNetworkV6 => _hostname.Replace(':', '-'),
+                    _ => _hostname,
+                };
+            }
+
+            return _hostname.Contains('.')
+                ? _hostname[.._hostname.IndexOf('.')]
+                : _hostname;
+        }
+    }
 
     public string ProductUri => "https://github.com/azure-samples/iot-edge-opc-plc";
 
