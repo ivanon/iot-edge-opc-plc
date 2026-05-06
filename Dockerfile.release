@@ -1,45 +1,44 @@
 # syntax=docker/dockerfile:1
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0-noble AS build
-ARG TARGETARCH
-WORKDIR /app
+# Stage 1: build + self-contained publish
+FROM mcr.microsoft.com/dotnet/sdk:10.0-noble AS build
+ARG APP_UID=1654
+WORKDIR /src
 
-# Copy configuration files
-COPY common.props .
-COPY Directory.Build.targets .
+# Copy build configuration files first for better cache hit
+COPY common.props Directory.Build.targets ./
 COPY src/Directory.Build.props src/
 COPY src/opc-plc.csproj src/
 COPY docs/media/icon.png docs/media/
-COPY README.md .
+COPY README.md ./
 
-# Restore dependencies
-RUN if [ "$TARGETARCH" = "amd64" ]; then ARCH=x64; else ARCH="$TARGETARCH"; fi \
-    && dotnet restore src/opc-plc.csproj -a "$ARCH"
+# Restore dependencies (locked to linux-x64)
+RUN dotnet restore src/opc-plc.csproj -a x64
 
 # Copy source code
 COPY src/ src/
 
-# Publish
-WORKDIR /app/src
-RUN if [ "$TARGETARCH" = "amd64" ]; then ARCH=x64; else ARCH="$TARGETARCH"; fi \
-    && dotnet publish opc-plc.csproj \
-    -c Release \
-    -o /app/publish \
-    -a "$ARCH" \
-    --self-contained true \
-    /p:TargetLatestRuntimePatch=true
+# Self-contained publish to /app, prepare /data anchor, set UIDs
+WORKDIR /src/src
+RUN dotnet publish opc-plc.csproj \
+        -c Release \
+        -o /app \
+        -a x64 \
+        --self-contained true \
+        /p:TargetLatestRuntimePatch=true \
+    && mkdir -p /data \
+    && chown -R ${APP_UID}:${APP_UID} /app /data
 
-# Final stage
-FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-noble AS final
-WORKDIR /app
-COPY --from=build /app/publish .
-
-# Setup non-root user
+# Stage 2: distroless runtime
+FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-azurelinux3.0-distroless AS final
 ARG APP_UID=1654
-RUN mkdir -p /app && chown "$APP_UID" /app
-USER $APP_UID
 
-# Expose ports from container.json
+COPY --from=build --chown=${APP_UID}:${APP_UID} /app /app
+COPY --from=build --chown=${APP_UID}:${APP_UID} /data /data
+
+WORKDIR /app
 EXPOSE 50000
-EXPOSE 8080
+USER ${APP_UID}
 
+# nodesfile.json defaults to /data/nodesfile.json (mount yours via -v)
 ENTRYPOINT ["./opcplc"]
+CMD ["--nodesfile=/data/nodesfile.json", "--autoaccept"]
