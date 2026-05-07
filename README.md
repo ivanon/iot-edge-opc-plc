@@ -39,16 +39,19 @@ All original upstream features (anomaly simulation, boilers, alarms, determinist
 ```
 opc-simulator/
 ├── src/
-│   ├── opc-plc.csproj              # Original OPC PLC console project
-│   ├── nodesfile.json              # Default fermentation tank node definitions
+│   ├── opc-plc.csproj              # CLI OPC PLC project
+│   ├── OpcPlc.Gui/                 # Avalonia GUI application
 │   ├── PluginNodes/                # User-defined node loading & simulation logic
 │   ├── OpcPlcServer.cs             # Server bootstrap
 │   └── ...                         # Original upstream source files
 ├── tests/                          # Unit & integration tests
+├── scripts/                        # Build & release scripts
+│   └── build-cli-image.sh          # CLI Docker image build script
 ├── docs/                           # Original upstream docs (deterministic-alarms, etc.)
+├── publish/                        # Self-contained publish output
 ├── opcplc.sln                      # Solution file
 ├── Dockerfile.debug                # Debug container build
-├── Dockerfile.release              # Release container build
+├── Dockerfile.release              # Release distroless container build
 └── README.md                       # This file
 ```
 
@@ -68,12 +71,24 @@ dotnet build src/opc-plc.csproj
 dotnet run --project src/opc-plc.csproj -- --nodesfile src/nodesfile.json --pn=50000 --autoaccept --unsecuretransport
 ```
 
-### Docker (original upstream behaviour)
+### Build & Run (Avalonia GUI)
 
 ```bash
-docker build -f Dockerfile.release -t opc-simulator .
-docker run --rm -it -p 50000:50000 -p 8080:8080 opc-simulator \
-  --pn=50000 --autoaccept --sph --sn=5 --sr=10 --st=uint --fn=5 --fr=1 --ft=uint --gn=5
+# Build the GUI application
+dotnet build src/OpcPlc.Gui/OpcPlc.Gui.csproj
+
+# Run the GUI
+dotnet run --project src/OpcPlc.Gui/OpcPlc.Gui.csproj
+```
+
+### Publish (self-contained single-file)
+
+```bash
+# macOS ARM64 (current primary target)
+dotnet publish src/OpcPlc.Gui/OpcPlc.Gui.csproj \
+  -c Release -r osx-arm64 --self-contained true \
+  -p:PublishSingleFile=true \
+  --output publish/osx-arm64
 ```
 
 ---
@@ -128,16 +143,73 @@ The JSON file defines the OPC UA address space hierarchy. Each top-level folder 
 
 ---
 
-## Avalonia GUI (in development)
+## Avalonia GUI
 
-The GUI layer is being developed in the `feature/avalonia-gui` branch. See [`docs/opc-simulator/avalonia-gui.md`](/docs/opc-simulator/avalonia-gui.md) for the design spec, build instructions, and project structure.
+The GUI layer has been merged into `main`. See [`docs/opc-simulator/avalonia-gui.md`](/docs/opc-simulator/avalonia-gui.md) for the design spec and project structure.
 
-Planned GUI capabilities:
-- Visual CRUD editor for the node tree
-- In-process server start/stop with live status
-- Real-time log panel
-- Per-node simulation configuration (Random / Sine / Ramp / Step)
-- X509 certificate settings GUI
+GUI capabilities:
+- **Visual CRUD editor** for the node tree — browse, add, remove, and edit nodes defined in `nodesfile.json`
+- **In-process server start/stop** with live status indicator and real-time log panel
+- **Configurable server port** — set the OPC UA listening port before starting the server
+- **Per-node simulation configuration** — Random / Sine / Ramp / Step (in progress)
+- **Runtime editor locking** — node editor is locked while the server is running
+- **Embedded resource + local persistence** — `nodesfile.json` ships as an embedded resource and is extracted to `LocalApplicationData` on first run
+
+---
+
+## Docker Deployment
+
+A **distroless CLI image** is provided for headless server deployment on Ubuntu 22.04 / linux-x64. The GUI is not included in the container.
+
+### Build
+
+```bash
+# Using the helper script
+scripts/build-cli-image.sh              # tags: bioflux/opc-simulator:latest
+scripts/build-cli-image.sh v0.1.0       # tags: v0.1.0 + latest
+
+# Or directly with Docker
+docker build --platform linux/amd64 -f Dockerfile.release -t bioflux/opc-simulator:latest .
+```
+
+### Run (single instance)
+
+```bash
+docker run -d --name opcplc-sim \
+    -v $PWD/nodesfile.json:/data/nodesfile.json:ro \
+    -p 50000:50000 \
+    bioflux/opc-simulator:latest
+```
+
+OPC UA endpoint: `opc.tcp://<host-ip>:50000`
+
+### Run (multiple instances on same host)
+
+```bash
+docker run -d --name opcplc-f01 \
+    -v $PWD/fermenter-f01.json:/data/nodesfile.json:ro \
+    -p 50001:50001 bioflux/opc-simulator:latest \
+    --nodesfile=/data/nodesfile.json --portnum=50001 --autoaccept
+
+docker run -d --name opcplc-f02 \
+    -v $PWD/fermenter-f02.json:/data/nodesfile.json:ro \
+    -p 50002:50002 bioflux/opc-simulator:latest \
+    --nodesfile=/data/nodesfile.json --portnum=50002 --autoaccept
+```
+
+> **Note:** `--portnum` inside the container must match the exposed port mapping.
+
+### Troubleshooting
+
+The distroless image has no shell. Use these alternatives:
+
+```bash
+docker logs -f opcplc-sim                # view logs
+docker cp opcplc-sim:/app/pki ./pki-dump # extract certificates
+docker run --rm bioflux/opc-simulator:latest --help  # CLI help
+```
+
+For full deployment details (certificate persistence, registry push, etc.), see [`../docs/deployment.md`](../docs/deployment.md).
 
 ---
 
