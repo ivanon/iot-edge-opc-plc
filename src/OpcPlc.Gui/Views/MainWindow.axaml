@@ -19,6 +19,8 @@
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="8">
             <Button Content="Start Server" Command="{Binding StartServerCommand}" />
             <Button Content="Stop Server" Command="{Binding StopServerCommand}" />
+            <TextBlock Text="Port:" VerticalAlignment="Center" />
+            <NumericUpDown Value="{Binding ServerPort}" Minimum="1024" Maximum="65535" IsEnabled="{Binding !NodeEditor.IsReadOnly}" Width="160" />
             <TextBlock Text="{Binding ServerStatusText}" VerticalAlignment="Center" />
         </StackPanel>
 

@@ -34,6 +34,13 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public string ServerStatusText => ServerStatus.ToString();
 
+    private int _serverPort = 50000;
+    public int ServerPort
+    {
+        get => _serverPort;
+        set => this.RaiseAndSetIfChanged(ref _serverPort, value);
+    }
+
     public ObservableCollection<string> LogLines { get; } = new ObservableCollection<string>();
 
     public NodeEditorViewModel NodeEditor { get; } = new NodeEditorViewModel();
@@ -95,7 +102,7 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 try
                 {
-                    await _opcPlcServer.StartAsync(["--autoaccept", "--ut", "--dca", "--ph", "0.0.0.0", "--nf", _nodesFileService.ResolvedPath]).ConfigureAwait(false);
+                    await _opcPlcServer.StartAsync(["--autoaccept", "--ut", "--dca", "--ph", "0.0.0.0", "--pn", ServerPort.ToString(), "--nf", _nodesFileService.ResolvedPath]).ConfigureAwait(false);
                 }
                 catch
                 {
